@@ -1,0 +1,213 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing: border-box;
+}
+
+.page{
+    position: fixed;
+    top: 0;
+    left: -100vw;
+    width: 100vw;
+    height: 90vh;
+    display: grid;
+    gap: 1rem;
+    padding: 3rem;
+    transition: 0.3s 0.3s all ease-in-out;
+    background: black;
+    color: white;
+    align-content: start;
+}
+.focus-items{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr) ) ;
+    gap:1rem;
+    overflow-y: scroll;
+}
+
+.focus-item, .project-container {
+    position:relative;
+}
+
+.focus-item {
+    background: rgba(255, 255, 255, 0.1);
+    height:250px;
+    padding: 1rem;
+    border-radius: 8px;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.page input[type="text"] {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: none;
+}
+
+.checkbox {
+    display:grid;
+    grid-auto-flow: column;
+    place-items: center;
+    height:2rem;
+    width:40%;
+    gap: 0.5rem;
+}
+
+.focus-item .material-icons.delete-icon {
+    position:absolute;
+    right: 1rem;
+    bottom:1rem; 
+    cursor: pointer;
+}
+
+#project-list, #calendar-container{
+    width:100%; 
+    display:grid;
+    gap:2rem;
+    overflow-y: scroll;
+}
+
+.project-container{
+    display:grid;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin-bottom:1rem;
+}
+
+.task-item{
+    display:grid;
+    grid-template-columns: 6fr 1fr;
+}
+
+
+.visible{
+    left:0;
+    transition: 0.3s all ease-in-out;
+}
+
+h1{
+    font-family: Raleway;
+    color:hotpink;
+}
+
+
+.footer-fixed {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 12vh;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    background: gray;
+    color: white;
+    padding: 0 1rem;
+    z-index: 100;
+  }
+  
+  .footer-nav {
+    display: grid;
+    place-items: center;
+  }
+
+  #next-page, #prev-page {
+    cursor: pointer;;
+  }
+    
+  .settings-menu {
+    margin-top: 1rem;
+    display: none; /* Kan senere toggles synlig/forskyldt via JavaScript */
+  }
+
+  .info-box {
+    position: fixed;
+    bottom: -12vh; /* Start uden for skærmen (under footeren) */
+    left: 0;
+    width: 100%;
+    height: 12vh; /* Samme højde som footeren */
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    display: grid;
+    place-items: center;
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .info-box.visible {
+    transform: translateY(-24vh); /* Flyt infoboksen op, så den bliver synlig over footeren */
+  }
+
+  /* Generel styling for textarea, fx til opgaveteksten i projektlisten */
+textarea {
+    width: 100%;
+    min-height: 3rem;      /* Mindste højde – kan justeres efter behov */
+    max-height: 100vh;     /* Valgfrit: en øvre grænse for højden */
+    overflow: hidden;      /* Skjul scrollbars, da vi auto-resizer via JS */
+    resize: none;          /* Forhindr manuel resizing */
+    padding: 0.5rem;
+    font-size: 1.5rem;
+    line-height: 1.4;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  
+  /* Eksempelvis, hvis du vil have en særskilt baggrund for projekt-tekstfelter */
+  #project-list textarea {
+    background-color: #f9f9f9;
+    color: #333;
+  }
+  .top-goals-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .top-goal-btn {
+    width: 200px;
+    transition: background-color 0.3s ease;
+  }
+  
+  
+  .top-goals-details {
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    max-height: 0;
+    padding: 0 10px;
+  }
+  
+  .top-goals-details.open {
+    max-height: 300px; /* Juster efter behov */
+    padding-top: 10px;
+    border-top: 1px solid #ccc;
+  }
+  
+  .top-goals-details ul {
+    list-style: disc;
+    margin-left: 20px;
+    padding-left: 0;
+  }
+  
+  .top-goals-details li {
+    margin-bottom: 5px;
+    line-height: 1.4;
+  }
+  
+  .compass-bg {
+    position: fixed; /* eller absolute, alt efter om du vil have den fast på skærmen eller inde i en container */
+    top: -50px;
+    right: -50px;
+    width: 200px; /* juster størrelsen efter behov */
+    height: 200px;
+    background-image: url('./assets/compass.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    opacity: 0.5; /* juster gennemsigtigheden her */
+    pointer-events: none; /* så det ikke forstyrrer interaktivitet */
+    z-index: 100; /* hvis du ønsker, at det skal ligge bag indholdet */
+  }
