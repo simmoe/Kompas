@@ -18,17 +18,10 @@ let currentWeekData = {};
     select('#next-page').mousePressed(() => shiftPage("ArrowRight"));
     // Registrer knappen "Tilføj fokusområde" til at kalde addFocusItem
     select('#add-focus-btn').mousePressed(addFocusItem);
-    select('#force-update-btn').mousePressed(setWeek);
+    select('#force-update-btn').mousePressed(()=>{setWeek;showInfo("Ugen er gemt");});
     updateWeekDisplay();
     // evt. kald getWeek() for at hente data for ugen
     getWeek()
-    // Opdater Firestore hvert minut, men kun hvis der er ændringer
-    setInterval(() => {
-        if (hasChanged) {
-        setWeek(currentWeekNumber);
-        hasChanged = false;
-        }
-    }, 60000);
   }
 
 

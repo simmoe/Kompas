@@ -112,75 +112,66 @@ function showInfo(message) {
   }
   
   function populateProjectsUI() {
-    // Hent eller opret containeren til projektlisten
-    let container = select("#project-list");
-    if (!container) {
-      container = createDiv();
-      container.id("project-list");
-      select("#page2").child(container);
+    let container = select("#project-list")
+    container.html("")
+  
+    if (!currentWeekData.projects) {
+      currentWeekData.projects = []
     }
-    // Ryd containeren, så vi starter med en frisk visning
-    container.html("");
   
-    // Tjek at der findes projekter i currentWeekData
-    if (currentWeekData.projects && currentWeekData.projects.length > 0) {
-      currentWeekData.projects.forEach((project, projectIndex) => {
-        // Opret en container for det enkelte projekt
-        let projectContainer = createDiv();
-        projectContainer.addClass("project-container");
-        projectContainer.elt.setAttribute("data-project-index", projectIndex);
+    currentWeekData.projects.forEach((project, projectIndex) => {
+      let projectContainer = createDiv().addClass("project-container")
+      projectContainer.elt.setAttribute("data-project-index", projectIndex)
   
-        // Tilføj overskrift med projektets titel (svarer til fokusområdets titel)
-        let titleHeader = createElement("h2", project.title || "Ukendt Fokusområde");
-        projectContainer.child(titleHeader);
+      // Titel på projektet
+      projectContainer.child(createElement("h2", project.title || "Ukendt Fokusområde"))
   
-        // Opret en label for markdown-opgavelisten
-        let markdownLabel = createElement("p", "Opgaveliste (Markdown):");
-        projectContainer.child(markdownLabel);
+      // Markdown-instruktion
+      projectContainer.child(createElement("p", "Opgaveliste (Markdown):"))
   
-        // Opret et tekstområde til opgavelisten
-        let tasksTextArea = createElement("textarea");
-        tasksTextArea.attribute("id", "project-tasks-" + projectIndex);
-        tasksTextArea.attribute("placeholder", "Indtast dine opgaver i markdown-format, fx:\n- Opgave 1\n-- Underopgave 1.1\n- Opgave 2");
-        tasksTextArea.elt.addEventListener("input", function() {
-            this.style.height = "auto";
-            this.style.height = this.scrollHeight + "px";
-          });
-        tasksTextArea.elt.addEventListener("focus", function() {
-            autoResizeTextarea(this);
-          });
+      let tasksTextArea = createElement("textarea")
+        .attribute("id", `project-tasks-${projectIndex}`)
+        .attribute("placeholder", "Indtast dine opgaver i markdown-format...")
   
-        // Hvis projektet allerede har opgaver, konverter dem til markdown og vis dem
-        if (project.tasks && project.tasks.length > 0) {
-          // Vi antager, at tasksToMarkdown() konverterer en tasks-array til en markdown-streng
-          tasksTextArea.html(tasksToMarkdown(project.tasks));
-          autoResizeTextarea(tasksTextArea.elt);
-
+      // Vis eksisterende opgaver som markdown
+      const existingTasks = project.tasks || []
+      tasksTextArea.html(tasksToMarkdown(existingTasks))
+  
+      tasksTextArea.elt.style.overflow = "hidden"
+      tasksTextArea.elt.style.resize = "none"
+  
+      tasksTextArea.elt.addEventListener("input", function() {
+        autoResize(this)
+        hasChanged = true
+      })
+  
+      tasksTextArea.elt.addEventListener("blur", function() {
+        const markdownText = (tasksTextArea.value() || "").trim()
+        
+        // Konverter markdown til tasks-array
+        const parsedTasks = markdownToTasks(markdownText)
+        
+        // Opdater modellen med det samme
+        currentWeekData.projects[projectIndex].tasks = parsedTasks
+        
+        // Opdater straks tekstfeltet med korrekt formatteret markdown
+        tasksTextArea.value(tasksToMarkdown(parsedTasks))
+        autoResize(tasksTextArea.elt)
+        
+        // Gem til Firestore automatisk
+        if (hasChanged) {
+          setWeek(currentWeekNumber)
+          hasChanged = false
+          showInfo("Opgavelisten er gemt")
         }
-        projectContainer.child(tasksTextArea);
+      })
   
-        // Tilføj en knap til at gemme den indtastede opgaveliste
-        let saveTasksBtn = createButton("Gem opgaveliste");
-        saveTasksBtn.attribute("id", "save-tasks-btn-" + projectIndex);
-        saveTasksBtn.mousePressed(() => {
-          // Konverter markdown-teksten til en tasks-array
-          let mdText = tasksTextArea.value();
-          // Vi antager, at markdownToTasks() parser mdText til et hierarkisk JSON-objekt
-          currentWeekData.projects[projectIndex].tasks = markdownToTasks(mdText);
-          hasChanged = true;
-          setWeek(currentWeekNumber);
-          showInfo("Opgavelisten er gemt");
-        });
-        projectContainer.child(saveTasksBtn);
-  
-        // Tilføj det enkelte projekt til containeren for projektlisten
-        container.child(projectContainer);
-      });
-    } else {
-      container.html("Ingen projekter at vise.");
-    }
+      autoResize(tasksTextArea.elt)
+      projectContainer.child(tasksTextArea)
+      container.child(projectContainer)
+    })
   }
-
+  
   function tasksToMarkdown(tasks, level = 1) {
     let markdown = "";
     tasks.forEach(task => {
@@ -202,8 +193,13 @@ function showInfo(message) {
     let stack = []; // Stack til at holde de seneste opgaver på hvert niveau
   
     lines.forEach(line => {
-      // Brug regex til at finde antallet af foranstillede bindestreger og resten af linjen
-      let match = line.match(/^(-+)\s+(.*)/);
+      // Tjek om linjen starter med en bindestreg (efter trim)
+      if (!line.trim().startsWith("-")) {
+        // Tilføj en bindestreg, hvis den mangler
+        line = "-" + line;
+      }
+      // Ændret regex: \s* for at tillade ingen eller flere mellemrum
+      let match = line.match(/^(-+)\s*(.*)/);
       if (match) {
         let level = match[1].length;  // Niveau baseret på antal bindestreger
         let description = match[2].trim();
@@ -216,7 +212,6 @@ function showInfo(message) {
           stack[0] = task;
         } else {
           // For niveau >1 skal vi finde den overordnede opgave fra niveau-1
-          // Sørg for at stacken har en opgave på forrige niveau
           if (stack[level - 2]) {
             stack[level - 2].subtasks.push(task);
             // Gem denne opgave på den aktuelle niveau i stacken
@@ -232,7 +227,8 @@ function showInfo(message) {
   
     return tasks;
   }
-
+  
+  
   // Funktion til at auto-justere højden
 function autoResizeTextarea(textarea) {
     textarea.style.height = "auto";
@@ -252,7 +248,7 @@ function updateWeekDisplay() {
       const docSnap = await docRef.get();
       if (docSnap.exists) {
         currentWeekData = docSnap.data();
-        console.log(`Ugedata for uge ${currentWeekNumber} hentet:`, currentWeekData);
+        //console.log(`Ugedata for uge ${currentWeekNumber} hentet:`, currentWeekData);
         // Opdater UI'en med den hentede data
         populateUIFromModel();
       } else {
@@ -269,7 +265,8 @@ function updateWeekDisplay() {
     try {
       const docRef = firebase.firestore().doc(docPath);
       await docRef.set(currentWeekData, { merge: true });
-      console.log(`Ugedata for uge ${currentWeekNumber} opdateret:`, currentWeekData);
+      //console.log(`Ugedata for uge ${currentWeekNumber} opdateret:`, currentWeekData);
+
     } catch (error) {
       console.error("Fejl ved opdatering af ugedata:", error);
     }
@@ -321,6 +318,20 @@ function updateWeekDisplay() {
     checkboxDiv.child(checkboxInput);
     
     newFocusDiv.child(checkboxDiv);
+  
+    // Tilføj event listener til checkboxen for at opdatere modellen ved ændring
+    checkboxInput.elt.addEventListener("change", function() {
+      updateFocusItemModel(newFocusDiv);
+      // Efter en ændring i checkboxen opdaterer vi projects-arrayet
+      initializeProjects();
+      // Hvis projektlisten er synlig, kan vi også genopbygge UI'en for den
+      if (select("#page2").hasClass("visible")) {
+        populateProjectsUI();
+      }
+      hasChanged = true;
+      setWeek();
+      console.log("Checkbox ændret for index:", newIndex, " - Model opdateret.");
+    });
     
     // Delete ikon med integreret event listener
     let deleteSpan = createSpan('delete');
@@ -343,7 +354,7 @@ function updateWeekDisplay() {
       });
       
       hasChanged = true;
-      setWeek(currentWeekNumber);
+      setWeek();
     });
     
     newFocusDiv.child(deleteSpan);
@@ -359,15 +370,11 @@ function updateWeekDisplay() {
     container.child(newFocusDiv);
   }
   
+  
   // Eksempel: Opret textarea til TRIN TRE - "Hvad er du stolt af?"
 function populateStolthedUI() {
     let container = select("#page3 .content"); // Antag en container i din side til trin 3
-    container.html(""); // Ryd containeren
-  
-    // Opret en beskrivende overskrift eller instruktion
-    let instr = createElement("p", "Skriv ned alt fra forrige periode som du er stolt af. Skriv mindst 10 ting – én ting per linje.");
-    container.child(instr);
-  
+    container.html(""); // Ryd containeren  
     // Opret textarea
     let stolthedTextArea = createElement("textarea");
     stolthedTextArea.attribute("id", "stolthed-textarea");
@@ -394,7 +401,7 @@ function populateStolthedUI() {
     // Alternativt kan du også opdatere modellen på blur
     stolthedTextArea.elt.addEventListener("blur", function() {
       currentWeekData.stolthed = stolthedTextArea.value();
-      setWeek(currentWeekNumber);
+      setWeek();
       showInfo("Stolthed gemt");
     });
   }
@@ -408,12 +415,6 @@ function autoResize(textarea) {
   function populateLaeringOgTabUI() {
     // Hent eller opret containeren til side 4 (TRIN FIRE)
     let container = select("#laering-container");
-    if (!container) {
-      container = createDiv();
-      container.id("laering-container");
-      // Tilføj containeren til side 4 (TRIN FIRE)
-      select("#page4").child(container);
-    }
     container.html(""); // Ryd containeren
   
     // Definer de tre sektioner med deres overskrifter, nøgler og placeholders
@@ -469,7 +470,7 @@ function autoResize(textarea) {
       secTextArea.elt.addEventListener("blur", function() {
         currentWeekData[sec.key] = secTextArea.value();
         if (hasChanged) {
-          setWeek(currentWeekNumber);
+          setWeek();
           hasChanged = false;
           showInfo("Ændringer gemt");
         }
@@ -483,18 +484,8 @@ function autoResize(textarea) {
   function populateForberedUI() {
     // Hent eller opret containeren til TRIN FEM (vi bruger id "forbered-container")
     let container = select("#forbered-container");
-    if (!container) {
-      container = createDiv();
-      container.id("forbered-container");
-      // Antag at TRIN FEM-siden er #page5
-      select("#page5").child(container);
-    }
     container.html(""); // Ryd containeren for en frisk visning
-  
-    // Opret en overskrift/instruktion
-    let instr = createElement("p", "Kig på dine topmål fra forrige periode og list de ting, som ikke skete som planlagt. Vær ærlig med dig selv – hvad var årsagen, og hvad er næste skridt? (Skriv én ting per linje.)");
-    container.child(instr);
-  
+    
     // Opret textarea
     let forberedTextArea = createElement("textarea");
     forberedTextArea.attribute("id", "forbered-textarea");
@@ -523,7 +514,7 @@ function autoResize(textarea) {
     forberedTextArea.elt.addEventListener("blur", function() {
       currentWeekData.forbered = forberedTextArea.value();
       if (hasChanged) {
-        setWeek(currentWeekNumber);
+        setWeek();
         hasChanged = false;
         showInfo("Ændringer gemt");
       }
@@ -622,82 +613,73 @@ function getTopGoals() {
   
   
 
-  // Hjælpefunktion til at beregne dato ud fra ugenummer og dagens index
-function getDateFromWeekNumber(weekNumber, dayIndex) {
-    // Vi antager, at uge 1 starter mandag den 2. januar 2023
-    let baseDate = new Date(2023, 0, 2); // Januar er 0
-    // Beregn antallet af dage, der skal lægges til
-    let offsetDays = (weekNumber - 1) * 7 + dayIndex;
-    let date = new Date(baseDate);
-    date.setDate(baseDate.getDate() + offsetDays);
-    // Returner datoen formateret til dansk (f.eks. "mandag 2/1/2023")
-    return date.toLocaleDateString("da-DK", { weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric' });
+  function getDateFromWeekNumber(weekNumber, dayIndex, year = new Date().getFullYear()) {
+    // Beregn den første torsdag i året (ISO-8601 standard)
+    let jan4 = new Date(year, 0, 4);
+    let firstMonday = new Date(jan4.setDate(jan4.getDate() - (jan4.getDay() || 7) + 1));
+  
+    // Tilføj antal uger og dage
+    let targetDate = new Date(firstMonday);
+    targetDate.setDate(firstMonday.getDate() + (weekNumber - 1) * 7 + dayIndex);
+  
+    // Dansk formatering
+    return targetDate.toLocaleDateString("da-DK", { 
+      weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric' 
+    });
+  }
+      
+  function populateCalendarUI() {
+    let container = select("#calendar-container")
+    container.html("")
+  
+    // Firebase-kompatibel initialisering
+    if (!currentWeekData.calendar || !Array.isArray(currentWeekData.calendar)) {
+      currentWeekData.calendar = Array.from({ length: 7 }, () => ({ tasks: [] }))
+    }
+  
+    for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+      let dayContainer = createDiv().addClass("day-container")
+  
+      let dateString = getDateFromWeekNumber(currentWeekNumber, dayIndex)
+  
+      dayContainer.child(createElement("h3", dateString))
+  
+      let dayTextArea = createElement("textarea")
+        .attribute("id", `calendar-day-${dayIndex}`)
+        .attribute("placeholder", `Indtast opgaver i markdown for ${dateString}`)
+  
+      // Sikret tilgang til opgaverne
+      const existingTasks = (currentWeekData.calendar[dayIndex] && currentWeekData.calendar[dayIndex].tasks)
+        ? currentWeekData.calendar[dayIndex].tasks
+        : []
+  
+      dayTextArea.html(tasksToMarkdown(existingTasks))
+  
+      dayTextArea.elt.style.overflow = "hidden"
+      dayTextArea.elt.style.resize = "none"
+  
+      dayTextArea.elt.addEventListener("input", function() {
+        autoResize(this)
+        hasChanged = true
+      })
+  
+      dayTextArea.elt.addEventListener("blur", function() {
+        const markdownText = (dayTextArea.value() || "").trim()
+        const parsedTasks = markdownToTasks(markdownText)
+        currentWeekData.calendar[dayIndex] = { tasks: parsedTasks } // Objekt med tasks-egenskab
+        if (hasChanged) {
+          setWeek()
+          hasChanged = false
+          showInfo("Ændringer gemt")
+        }
+      })
+  
+      autoResize(dayTextArea.elt)
+      dayContainer.child(dayTextArea)
+      container.child(dayContainer)
+    }
   }
     
-  // Funktion til at opbygge kalender-UI'en
-  function populateCalendarUI() {
-    // Hent eller opret containeren til kalenderen
-    let container = select("#calendar-container");
-    container.html(""); // Ryd containeren
-  
-    // Initialiser en plads i din lokale model til kalender-data (hvis ikke allerede gjort)
-    if (!currentWeekData.calendar) {
-      currentWeekData.calendar = [];
-    }
-  
-    // For hver dag i ugen (0 = mandag, 6 = søndag)
-    for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-      // Opret en container for den enkelte dag
-      let dayContainer = createDiv();
-      dayContainer.addClass("day-container");
-  
-      // Beregn datoen ud fra ugenummer og dagens index
-      let dateString = getDateFromWeekNumber(currentWeekNumber, dayIndex);
-  
-      // Opret en overskrift med datoen
-      let header = createElement("h3", dateString);
-      dayContainer.child(header);
-  
-      // Opret et textarea til opgaver i markdown-format
-      let dayTextArea = createElement("textarea");
-      dayTextArea.attribute("id", "calendar-day-" + dayIndex);
-      dayTextArea.attribute("placeholder", "Indtast dine opgaver i markdown-format for " + dateString);
-      
-      // Hvis der allerede er gemt tekst for denne dag, indsæt den
-      if (currentWeekData.calendar[dayIndex]) {
-        dayTextArea.html(currentWeekData.calendar[dayIndex]);
-      }
-      dayContainer.child(dayTextArea);
-  
-      // Styling: sørg for at tekstfeltet ikke viser scrollbars og auto-resizes
-      dayTextArea.elt.style.overflow = "hidden";
-      dayTextArea.elt.style.resize = "none";
-  
-      // Tilføj event listeners til at auto-resize og opdatere den lokale model ved input
-      dayTextArea.elt.addEventListener("input", function() {
-        autoResize(this);
-        currentWeekData.calendar[dayIndex] = dayTextArea.value();
-        hasChanged = true;
-      });
-      dayTextArea.elt.addEventListener("focus", function() {
-        autoResize(this);
-      });
-      // Ved blur opdateres Firebase (hvis der er ændringer)
-      dayTextArea.elt.addEventListener("blur", function() {
-        currentWeekData.calendar[dayIndex] = dayTextArea.value();
-        if (hasChanged) {
-          setWeek(currentWeekNumber);
-          hasChanged = false;
-          showInfo("Ændringer gemt");
-        }
-      });
-      // Initial auto-resize
-      autoResize(dayTextArea.elt);
-  
-      // Tilføj dagens container til kalender-containeren
-      container.child(dayContainer);
-    }
-  }
   
   // Rekursiv funktion til at bygge en bullet-liste fra en tasks-array med evt. underopgaver
 function buildTaskList(tasks) {
@@ -749,7 +731,7 @@ function buildTaskList(tasks) {
     planTextArea.elt.addEventListener("blur", function() {
       currentWeekData.planForud = planTextArea.value();
       if (hasChanged) {
-        setWeek(currentWeekNumber);
+        setWeek();
         hasChanged = false;
         showInfo("Ændringer gemt");
       }

@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css" integrity="sha512-EZLkOqwILORob+p0BXZc+Vm3RgJBOe1Iq/0fiI7r/wJgzOFZMlsqTa29UEl6v6U6gsV4uIpsNZoV32YZqrCRCQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/8.3.3/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.3.3/firebase-firestore.js"></script>    
@@ -20,77 +21,95 @@
 </head>
 <body>
     <div class="page visible" id="page1" data-topic="overblik">
-        <h1>TRIN ET - THE BIG PICTURE</h1>
+        <h1 class="blue">TRIN ET</h1>
+        <h1 class="white">THE BIG PICTURE</h1>
+        <hr>
         <div class="instruction">
-            <p>"The future you see is the future you get." – Robert G. Allen</p>
-            <p>Reflekter over dine vigtigste livsfokusområder. Indtast fx "Sundhed", "Krop" og "Kærlighed" – og skriv nedenfor din motivation for hvert punkt. (Tid: 10-30 minutter første gang, herefter 2-5 minutter)</p>
+          <p>"The future you see is the future you get." – Robert G. Allen</p>
+          <p>Reflekter over dine vigtigste livsfokusområder. Indtast fx "Sundhed", "Krop" og "Kærlighed" – og skriv nedenfor din motivation for hvert punkt. (Tid: 10-30 minutter første gang, herefter 2-5 minutter)</p>
         </div>
-
         <div>
             <button type="button" id="add-focus-btn">Tilføj fokusområde</button>
         </div>
-
-            
+        <hr>            
         <div class="focus-items" id="focus-items">
         </div>
     </div>
         
     <div class="page" id="page2" data-topic="projekter">
-      <h1>TRIN TO - PROJEKTLISTEN</h1>
+      <h1 class="blue">TRIN TO</h1>
+      <h1 class="white">PROJEKTLISTEN</h1>
+      <hr>
       <div class="instruction">
         <p>"Get everything into IN" – David Allen</p>
         <p>Opdel hvert af dine mål i delopgaver, så de bliver lettere at overskue og planlægge. Brug 10-30 minutter første gang og 2-5 minutter til løbende justering.</p>
       </div>
+      <hr>
       <div id="project-list"></div>
     </div>
     
     <div class="page" id="page3" data-topic="stolthed">
-      <h1>TRIN TRE - HVAD ER DU STOLT AF?</h1>
+      <h1 class="blue">TRIN TRE</h1>
+      <h1 class="white">HVAD ER DU STOLT AF?</h1>
+      <hr>
       <div class="instruction">
         <p>"The more you praise and celebrate your life, the more there is in life to celebrate." - Oprah Winfrey</p>
         <p>Skriv ned mindst 10 ting - både store og små - fra forrige periode, som du er stolt af. Tid: 2-5 minutter.</p>
       </div>
+      <hr>
       <div class="content"></div>
     </div>
     
-    <div class="page" id="page4" data-topic="læring">
-      <h1>TRIN FIRE - LÆRING OG TAB</h1>
+    <div class="page" id="page4" data-topic="læring">      
+      <h1 class="blue">TRIN FIRE</h1>
+      <h1 class="white">LÆRING OG TAB</h1>
+      <hr>
       <div class="instruction">
         <p>"Learn from your failure and it’s not failure. Do it again and it is." – Live Your Legend</p>
         <p>"Get over your losses instead of storing them in the pain body." – Falcon Ener Kise</p>
-        <p>Skriv ned de vigtigste læringspunkter fra forrige periode – både tab og succeser – og notér, hvordan de skal integreres i dine næste skridt. Tid: 2-5 minutter.</p>
+        <p>Skriv de vigtigste læringspunkter fra forrige periode ned - både tab og succeser - og notér, hvordan de skal integreres i dine næste skridt. Brug en enkelt linje til hvert punkt. Tid: 2-5 minutter.</p>
       </div>
+      <hr>
+      <div id="laering-container"></div>
     </div>
     
     <div class="page" id="page5" data-topic="analyse">
-      <h1>TRIN FEM - FORBEREDE DIG PÅ NÆSTE PERIODE VED AT ANALYSERE HVAD SOM IKKE SKETE</h1>
+      <h1 class="blue">TRIN FEM</h1>
+      <h1 class="white">ANALYSER HVAD DER IKKE SKETE</h1>
+      <hr>
       <div class="instruction">
-        <p>"Tell me where I''m going to die, so I won't go there." - Charlie Munger</p>
+        <p>"Tell me where I'm going to die, so I won't go there." - Charlie Munger</p>
         <p>Gennemgå dine topmål fra forrige periode og notér de ting, som ikke skete som planlagt – hvorfor, og hvad der skal ændres. Tid: 2-10 minutter.</p>
       </div>
-      <div class="content"></div>
+      <hr>
+      <div id="forbered-container"></div>
     </div>
     
     <div class="page" id="page6" data-topic="forpligtelse">
-      <h1>TRIN SEKS – AFKLAR OG FORPLIGT DIG TIL DINE TOPMÅL FOR NÆSTE PERIODE</h1>
+      <h1 class="blue">TRIN SEKS</h1>
+      <h1 class="white">FORPLIGT DIG TIL DINE TOPMÅL</h1>
+      <hr>
       <div class="instruction">
         <p>"Focus is the key to the world." – William Dinsmore III</p>
         <p>Vælg 3-6 topmål for den kommende periode, der afspejler dine overordnede fokusområder – inklusiv vigtige begivenheder, hvis nødvendigt – og planlæg kerneopgaverne. Tid: 2-5 minutter.</p>
       </div>
       <div id="top-goals-container"></div>
-      <div id="calendar-container"></div>
-
+      <hr>
+      <div id="calendar-container"></div>      
     </div>
     
     <div class="page" id="page7" data-topic="planlægning">
-      <h1>TRIN SYV - PLANLÆG FORUD</h1>
+      <h1 class="blue">TRIN SYV</h1>
+      <h1 class="white">PLANLÆG FORUD</h1>
+      <hr>
       <div class="instruction">
-        <p>Noter, hvad du allerede nu ved, er vigtigt at fokusere på i næste periode – de elementer, du med sikkerhed ikke kan nå i denne uge. Tid: 2-5 minutter.</p>
+        <p>Noter, hvad du allerede nu ved, er vigtigt at fokusere på i næste periode - de elementer, du med sikkerhed ikke kan nå i denne uge. Tid: 2-5 minutter.</p>
       </div>
+      <hr>
       <div id="plan-forud-container"></div>
     </div>
 
-    <!-- Foderen, der placeres fast nederst på siden -->
+    <!-- Footeren, der placeres fast nederst på siden -->
 <div class="footer-fixed">
     <div class="footer-nav left">
       <span id="prev-page" class="material-icons">arrow_back</span>
@@ -98,7 +117,7 @@
     <div class="footer-nav center">
       <div class="weekly-settings">
         <h1 id="current-week">Uge 1</h1>
-        <p id="force-update-btn">force database update</p>
+        <p id="force-update-btn">FORCE SAVE</p>
       </div>
     </div>
     <div class="footer-nav right">
