@@ -277,37 +277,6 @@ function updateWeekDisplay() {
     select("#current-week").html("Uge " + currentWeekNumber);
   }
   
-  async function getWeek() {
-    const docPath = `/kompas/user_1/weeks/week_${currentWeekNumber}`;
-    try {
-      const docRef = firebase.firestore().doc(docPath);
-      const docSnap = await docRef.get();
-      if (docSnap.exists) {
-        currentWeekData = docSnap.data();
-        //console.log(`Ugedata for uge ${currentWeekNumber} hentet:`, currentWeekData);
-        // Opdater UI'en med den hentede data
-        populateUIFromModel();
-      } else {
-        console.log(`Ingen data for uge ${currentWeekNumber} findes. Initialiserer et tomt objekt.`);
-        currentWeekData = {};
-      }
-    } catch (error) {
-      console.error("Fejl ved hentning af ugedata:", error);
-    }
-  }
-    
-  async function setWeek() {
-    const docPath = `/kompas/user_1/weeks/week_${currentWeekNumber}`;
-    try {
-      const docRef = firebase.firestore().doc(docPath);
-      await docRef.set(currentWeekData, { merge: true });
-      //console.log(`Ugedata for uge ${currentWeekNumber} opdateret:`, currentWeekData);
-
-    } catch (error) {
-      console.error("Fejl ved opdatering af ugedata:", error);
-    }
-  }
-
   function addFocusItem() {
     let container = select('#focus-items');
     let newIndex = container.elt.childElementCount;
