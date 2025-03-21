@@ -281,15 +281,19 @@ function updateWeekDisplay() {
     newFocusDiv.elt.setAttribute('data-index', newIndex);
   
     // Fokusområde label og input
+    let c = createDiv().addClass('focusTitle')
+    
     let labelTitle = createElement('label', 'Fokusområde:');
     labelTitle.attribute('for', 'focus-title-' + newIndex);
-    newFocusDiv.child(labelTitle);
+    
+    c.child(labelTitle);
     
     let titleInput = createInput('');
     titleInput.attribute('id', 'focus-title-' + newIndex);
     titleInput.attribute('name', `focus[${newIndex}].title`);
     titleInput.attribute('placeholder', 'Nyt fokusområde');
-    newFocusDiv.child(titleInput);
+    c.child(titleInput)
+    newFocusDiv.child(c);
     
     // Motivation label og input
     let labelMotivation = createElement('label', 'Motivation:');
