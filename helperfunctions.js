@@ -111,67 +111,103 @@ function showInfo(message) {
     populateProjectsUI();
   }
   
-  function populateProjectsUI() {
-    let container = select("#project-list")
-    container.html("")
-  
-    if (!currentWeekData.projects) {
-      currentWeekData.projects = []
-    }
-  
-    currentWeekData.projects.forEach((project, projectIndex) => {
-      let projectContainer = createDiv().addClass("project-container")
-      projectContainer.elt.setAttribute("data-project-index", projectIndex)
-  
-      // Titel på projektet
-      projectContainer.child(createElement("h2", project.title || "Ukendt Fokusområde"))
-  
-      // Markdown-instruktion
-      projectContainer.child(createElement("p", "Opgaveliste (Markdown):"))
-  
-      let tasksTextArea = createElement("textarea")
-        .attribute("id", `project-tasks-${projectIndex}`)
-        .attribute("placeholder", "Indtast dine opgaver i markdown-format...")
-  
-      // Vis eksisterende opgaver som markdown
-      const existingTasks = project.tasks || []
-      tasksTextArea.html(tasksToMarkdown(existingTasks))
-  
-      tasksTextArea.elt.style.overflow = "hidden"
-      tasksTextArea.elt.style.resize = "none"
-  
-      tasksTextArea.elt.addEventListener("input", function() {
-        autoResize(this)
-        hasChanged = true
-      })
-  
-      tasksTextArea.elt.addEventListener("blur", function() {
-        const markdownText = (tasksTextArea.value() || "").trim()
-        
-        // Konverter markdown til tasks-array
-        const parsedTasks = markdownToTasks(markdownText)
-        
-        // Opdater modellen med det samme
-        currentWeekData.projects[projectIndex].tasks = parsedTasks
-        
-        // Opdater straks tekstfeltet med korrekt formatteret markdown
-        tasksTextArea.value(tasksToMarkdown(parsedTasks))
-        autoResize(tasksTextArea.elt)
-        
-        // Gem til Firestore automatisk
-        if (hasChanged) {
-          setWeek(currentWeekNumber)
-          hasChanged = false
-          showInfo("Opgavelisten er gemt")
+  function createTaskElement(task, projectIndex) {
+    let taskDiv = createDiv().addClass('task-item');
+
+    // Label for hovedopgave
+    let taskTitleLabel = createElement('label', 'Hovedopgave:').addClass('task-title-label');
+
+    let taskTitleInput = createInput(task.title || '').addClass('task-title-input');
+    taskTitleInput.attribute('placeholder', 'Titel');
+    taskTitleInput.elt.addEventListener('input', function() {
+        task.title = taskTitleInput.value();
+        hasChanged = true;
+    });
+    taskTitleInput.elt.addEventListener('blur', function() {
+        if (taskTitleInput.value().trim() !== '') {
+            setWeek(currentWeekNumber);
+            hasChanged = false;
+            showInfo("Opgavelisten er gemt");
+            console.log("Current task data:", task);
         }
-      })
-  
-      autoResize(tasksTextArea.elt)
-      projectContainer.child(tasksTextArea)
-      container.child(projectContainer)
-    })
-  }
-  
+    });
+
+    // Label for underopgaver
+    let taskDescriptionLabel = createElement('label', 'Underopgaver:').addClass('task-description-label');
+
+    let taskDescriptionTextArea = createElement('textarea').addClass('task-description-textarea');
+    taskDescriptionTextArea.attribute('placeholder', 'Underopgaver adskilt af linjeskift');
+    taskDescriptionTextArea.html(task.subtasks ? task.subtasks.map(subtask => subtask.title).join('\n') : '');
+    autoResizeTextarea(taskDescriptionTextArea.elt);
+    taskDescriptionTextArea.elt.addEventListener('input', function() {
+        task.subtasks = taskDescriptionTextArea.value().split('\n').map(title => ({ title, completed: false, subtasks: [] }));
+        autoResizeTextarea(taskDescriptionTextArea.elt);
+        hasChanged = true;
+    });
+    taskDescriptionTextArea.elt.addEventListener('blur', function() {
+        setWeek(currentWeekNumber);
+        hasChanged = false;
+        showInfo("Opgavelisten er gemt");
+        console.log("Current task data:", task);
+    });
+
+    let deleteIcon = createSpan('delete').addClass('material-icons delete-icon');
+    deleteIcon.mousePressed(function() {
+        taskDiv.remove();
+        currentWeekData.projects[projectIndex].tasks = currentWeekData.projects[projectIndex].tasks.filter(t => t !== task);
+        hasChanged = true;
+        setWeek(currentWeekNumber);
+        showInfo("Opgavelisten er gemt");
+    });
+
+    // Tilføj elementerne i den ønskede rækkefølge
+    taskDiv.child(taskTitleLabel);
+    taskDiv.child(taskTitleInput);
+    taskDiv.child(taskDescriptionLabel);
+    taskDiv.child(taskDescriptionTextArea);
+    taskDiv.child(deleteIcon);
+
+    return taskDiv;
+}
+
+function populateProjectsUI() {
+    let container = select("#project-list");
+    container.html("");
+
+    if (!currentWeekData.projects) {
+        currentWeekData.projects = [];
+    }
+
+    currentWeekData.projects.forEach((project, projectIndex) => {
+        let projectContainer = createDiv().addClass("project-container");
+        projectContainer.elt.setAttribute("data-project-index", projectIndex);
+
+        // Titel på projektet
+        projectContainer.child(createElement("h2", project.title || "Ukendt Fokusområde"));
+
+        // Opgaveliste
+        let taskListContainer = createDiv().addClass('task-list-container');
+        project.tasks.forEach(task => {
+            let taskElement = createTaskElement(task, projectIndex);
+            taskListContainer.child(taskElement);
+        });
+
+        projectContainer.child(taskListContainer);
+
+        // Tilføj opgave ikon
+        let addTaskIcon = createSpan('add').addClass('material-icons add-task-icon');
+        addTaskIcon.mousePressed(function() {
+            let task = { title: '', completed: false, subtasks: [] };
+            project.tasks.push(task);
+            let taskElement = createTaskElement(task, projectIndex);
+            taskListContainer.child(taskElement);
+            hasChanged = true;
+        });
+
+        projectContainer.child(addTaskIcon);
+        container.child(projectContainer);
+    });
+}  
   function tasksToMarkdown(tasks, level = 1) {
     let markdown = "";
     tasks.forEach(task => {
@@ -383,7 +419,7 @@ function populateStolthedUI() {
     // Opret textarea
     let stolthedTextArea = createElement("textarea");
     stolthedTextArea.attribute("id", "stolthed-textarea");
-    stolthedTextArea.attribute("placeholder", "F.eks. 'Fik ros for et projekt på arbejdet...'");
+    stolthedTextArea.attribute("placeholder", "'Jeg er stolt af...'");
     // Hvis der allerede findes gemte data, indsæt dem
     if (currentWeekData.stolthed) {
       stolthedTextArea.html(currentWeekData.stolthed);
@@ -532,90 +568,91 @@ function autoResize(textarea) {
  // Denne funktion henter de topmål, der er markeret som hovedmål
 function getTopGoals() {
     if (!currentWeekData.focus || !Array.isArray(currentWeekData.focus)) {
-      return [];
+        return [];
     }
-    return currentWeekData.focus.filter(item => item.isMain && item.title.trim() !== "");
-  }
-  
-  // Opbygger TRIN 6 – Topmål UI med knapper og en udvidelsescontainer
-  function populateTopGoalsUI() {
+    return currentWeekData.focus
+        .map((item, index) => ({ item, index }))
+        .filter(({ item }) => item.isMain && item.title.trim() !== "");
+}
+
+// Opbygger TRIN 6 – Topmål UI med knapper og en udvidelsescontainer
+function populateTopGoalsUI() {
     // Hent eller opret containeren til TRIN 6 (f.eks. en div med id "top-goals-container" på side 6)
     let container = select("#top-goals-container");
     if (!container) {
-      container = createDiv();
-      container.id("top-goals-container");
-      // Antag, at TRIN 6-siden er #page6
-      select("#page6").child(container);
+        container = createDiv();
+        container.id("top-goals-container");
+        // Antag, at TRIN 6-siden er #page6
+        select("#page6").child(container);
     }
     container.html(""); // Ryd containeren
-  
+
     // Hent topmål fra den lokale model
     let topGoals = getTopGoals();
-    
+
     // Opret en paragraf med instruktion
     let instr = createElement("p", "Dine topmål for næste periode er:");
     container.child(instr);
-    
+
     // Opret en container til topmål-knapperne
     let buttonContainer = createDiv();
     buttonContainer.addClass("top-goals-buttons");
     container.child(buttonContainer);
-    
+
     // For hvert topmål oprettes en knap
-    topGoals.forEach((goal, index) => {
-      let btn = createButton(goal.title);
-      // Tilføj knappeklasser – knappen skal have en fast bredde på 200px (styres via CSS)
-      btn.addClass("top-goal-btn");
-      // Sæt en data-attribut med indekset
-      btn.attribute("data-goal-index", index);
-      // Når knappen trykkes, kaldes toggleGoalDetails for at vise/skjule detaljerne
-      btn.mousePressed(() => {
-        toggleGoalDetails(index);
-      });
-      buttonContainer.child(btn);
+    topGoals.forEach(({ item, index }) => {
+        let btn = createButton(item.title);
+        // Tilføj knappeklasser – knappen skal have en fast bredde på 200px (styres via CSS)
+        btn.addClass("top-goal-btn");
+        // Sæt en data-attribut med indekset
+        btn.attribute("data-goal-index", index);
+        // Når knappen trykkes, kaldes toggleGoalDetails for at vise/skjule detaljerne
+        btn.mousePressed(() => {
+            toggleGoalDetails(index);
+        });
+        buttonContainer.child(btn);
     });
-    
+
     // Opret en container, der skal vise detaljerne – under knapperne
     let detailsContainer = select("#top-goals-details");
     if (!detailsContainer) {
-      detailsContainer = createDiv();
-      detailsContainer.id("top-goals-details");
-      detailsContainer.addClass("top-goals-details");
-      container.child(detailsContainer);
+        detailsContainer = createDiv();
+        detailsContainer.id("top-goals-details");
+        detailsContainer.addClass("top-goals-details");
+        container.child(detailsContainer);
     } else {
-      detailsContainer.html("");
-      detailsContainer.elt.removeAttribute("data-goal-index");
-      detailsContainer.removeClass("open");
+        detailsContainer.html("");
+        detailsContainer.elt.removeAttribute("data-goal-index");
+        detailsContainer.removeClass("open");
     }
 
-    populateCalendarUI()
-  }
-  
-  function toggleGoalDetails(goalIndex) {
-    let detailsContainer = select("#top-goals-details");
-    let currentDetailIndex = detailsContainer.elt.getAttribute("data-goal-index");
-  
-    // Hvis samme goal allerede er vist, skjul detaljerne
-    if (currentDetailIndex && parseInt(currentDetailIndex) === goalIndex) {
+    populateCalendarUI();
+}
+
+function toggleGoalDetails(goalIndex) {
+  let detailsContainer = select("#top-goals-details");
+  let currentDetailIndex = detailsContainer.elt.getAttribute("data-goal-index");
+
+  // Hvis samme goal allerede er vist, skjul detaljerne
+  if (currentDetailIndex && parseInt(currentDetailIndex) === goalIndex) {
       detailsContainer.html("");
       detailsContainer.elt.removeAttribute("data-goal-index");
       detailsContainer.removeClass("open");
-    } else {
+  } else {
       // Hent projektet – vi antager her, at topmålene svarer til projekter
       let project = currentWeekData.projects && currentWeekData.projects[goalIndex];
       detailsContainer.html("");
       if (!project || !project.tasks || project.tasks.length === 0) {
-        detailsContainer.child(createElement("p", "Ingen opgaver tilknyttet dette topmål."));
+          detailsContainer.child(createElement("p", "Ingen opgaver tilknyttet dette topmål."));
       } else {
-        // Byg en rekursiv bullet-liste med alle niveauer af opgaver
-        let taskList = buildTaskList(project.tasks);
-        detailsContainer.child(taskList);
+          // Byg en rekursiv bullet-liste med alle niveauer af opgaver
+          let taskList = buildTaskList(project.tasks);
+          detailsContainer.child(taskList);
       }
       detailsContainer.elt.setAttribute("data-goal-index", goalIndex);
       detailsContainer.addClass("open");
-    }
   }
-  
+}  
   
 
   function getDateFromWeekNumber(weekNumber, dayIndex, year = new Date().getFullYear()) {
@@ -634,82 +671,81 @@ function getTopGoals() {
   }
       
   function populateCalendarUI() {
-    let container = select("#calendar-container")
-    container.html("")
-  
+    let container = select("#calendar-container");
+    container.html("");
+
     // Firebase-kompatibel initialisering
     if (!currentWeekData.calendar || !Array.isArray(currentWeekData.calendar)) {
-      currentWeekData.calendar = Array.from({ length: 7 }, () => ({ tasks: [] }))
+        currentWeekData.calendar = Array.from({ length: 7 }, () => ({ tasks: [] }));
     }
-  
+
     for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-      let dayContainer = createDiv().addClass("day-container")
-  
-      let dateString = getDateFromWeekNumber(currentWeekNumber, dayIndex)
-  
-      dayContainer.child(createElement("h3", dateString))
-  
-      let dayTextArea = createElement("textarea")
-        .attribute("id", `calendar-day-${dayIndex}`)
-        .attribute("placeholder", `Indtast opgaver i markdown for ${dateString}`)
-  
-      // Sikret tilgang til opgaverne
-      const existingTasks = (currentWeekData.calendar[dayIndex] && currentWeekData.calendar[dayIndex].tasks)
-        ? currentWeekData.calendar[dayIndex].tasks
-        : []
-  
-      dayTextArea.html(tasksToMarkdown(existingTasks))
-  
-      dayTextArea.elt.style.overflow = "hidden"
-      dayTextArea.elt.style.resize = "none"
-  
-      dayTextArea.elt.addEventListener("input", function() {
-        autoResize(this)
-        hasChanged = true
-      })
-  
-      dayTextArea.elt.addEventListener("blur", function() {
-        const markdownText = (dayTextArea.value() || "").trim()
-        const parsedTasks = markdownToTasks(markdownText)
-        currentWeekData.calendar[dayIndex] = { tasks: parsedTasks } // Objekt med tasks-egenskab
-        if (hasChanged) {
-          setWeek()
-          hasChanged = false
-          showInfo("Ændringer gemt")
-        }
-      })
-  
-      autoResize(dayTextArea.elt)
-      dayContainer.child(dayTextArea)
-      container.child(dayContainer)
+        let dayContainer = createDiv().addClass("day-container");
+
+        let dateString = getDateFromWeekNumber(currentWeekNumber, dayIndex);
+
+        dayContainer.child(createElement("h3", dateString));
+
+        let dayTextArea = createElement("textarea")
+            .attribute("id", `calendar-day-${dayIndex}`)
+            .attribute("placeholder", `Indtast opgaver for ${dateString}`);
+
+        // Sikret tilgang til opgaverne
+        const existingTasks = (currentWeekData.calendar[dayIndex] && currentWeekData.calendar[dayIndex].tasks)
+            ? currentWeekData.calendar[dayIndex].tasks
+            : [];
+
+        dayTextArea.html(existingTasks.map(task => task.title).join('\n'));
+
+        dayTextArea.elt.style.overflow = "hidden";
+        dayTextArea.elt.style.resize = "none";
+
+        dayTextArea.elt.addEventListener("input", function() {
+            autoResize(this);
+            hasChanged = true;
+        });
+
+        dayTextArea.elt.addEventListener("blur", function() {
+            const taskTitles = dayTextArea.value().split('\n').map(title => title.trim()).filter(title => title !== '');
+            const parsedTasks = taskTitles.map(title => ({ title, completed: false, subtasks: [] }));
+            currentWeekData.calendar[dayIndex] = { tasks: parsedTasks }; // Objekt med tasks-egenskab
+            if (hasChanged) {
+                setWeek();
+                hasChanged = false;
+                showInfo("Ændringer gemt");
+                console.log("Current day tasks data:", currentWeekData.calendar[dayIndex]);
+            }
+        });
+
+        autoResize(dayTextArea.elt);
+        dayContainer.child(dayTextArea);
+        container.child(dayContainer);
     }
-  }
-    
+}    
   
-  // Rekursiv funktion til at bygge en bullet-liste fra en tasks-array med evt. underopgaver
-function buildTaskList(tasks) {
+  function buildTaskList(tasks) {
     let ul = createElement("ul");
     tasks.forEach(task => {
-      let li = createElement("li", task.description);
-      if (task.subtasks && task.subtasks.length > 0) {
-        // Hvis der findes underopgaver, bygges en nestet liste
-        let nestedUl = buildTaskList(task.subtasks);
-        li.child(nestedUl);
-      }
-      ul.child(li);
+        let li = createElement("li", task.title); // Brug 'title' i stedet for 'description'
+        if (task.subtasks && task.subtasks.length > 0) {
+            // Hvis der findes underopgaver, bygges en nestet liste
+            let nestedUl = buildTaskList(task.subtasks);
+            li.child(nestedUl);
+        }
+        ul.child(li);
     });
     return ul;
-  }
+}
 
   function populatePlanForudUI() {
     // Hent eller opret containeren til TRIN SYV – PLANLÆG FORUD (for eksempel med id "plan-forud-container")
     let container = select("#plan-forud-container");
     container.html(""); // Ryd containeren
-  
+    
     // Opret en instruktions-tekst
     let instruction = createElement("p", "Noter hvad du allerede nu ved er vigtigt at fokusere på i næste periode:");
     container.child(instruction);
-  
+    
     // Opret et textarea til noterne
     let planTextArea = createElement("textarea");
     planTextArea.attribute("id", "plan-forud-textarea");
@@ -720,10 +756,10 @@ function buildTaskList(tasks) {
       planTextArea.html(currentWeekData.planForud);
     }
     container.child(planTextArea);
-  
+    
     // Anvend CSS-klasser til textarea'en via stylesheet (vi undgår inline-styling her)
     planTextArea.elt.classList.add("autosize-textarea");
-  
+    
     // Tilføj event listeners til auto-resizing og data-binding
     planTextArea.elt.addEventListener("input", function() {
       autoResize(this);
@@ -744,4 +780,42 @@ function buildTaskList(tasks) {
     // Opdater højden ved initialisering
     autoResize(planTextArea.elt);
   }
-  
+
+// Funktion til at tilføje fold-ud funktionalitet til instruktioner
+function initializeInstructions() {
+    const instructions = document.querySelectorAll('.instruction');
+    instructions.forEach(instruction => {
+        // Gem den oprindelige tekst
+        const fullText = instruction.innerHTML;
+        // Sæt en kort tekst som standard
+        instruction.innerHTML = 'Instruks';
+        instruction.style.cursor = 'pointer';
+        instruction.style.color = 'blue'; // Gør teksten klikbar
+        instruction.style.display = 'flex';
+        instruction.style.alignItems = 'center';
+
+        // Tilføj en pil fra Google Material Icons
+        const arrow = document.createElement('span');
+        arrow.classList.add('material-icons', 'arrow-icon');
+        arrow.innerHTML = 'expand_more';
+        arrow.style.marginLeft = '8px'; // Tilføj lidt afstand mellem tekst og pil
+        instruction.appendChild(arrow);
+
+        // Tilføj en klik-hændelse for at folde ud og ind
+        instruction.addEventListener('click', function() {
+            if (instruction.innerHTML.startsWith('Instruks')) {
+                instruction.innerHTML = fullText;
+                arrow.innerHTML = 'expand_less'; // Skift pilens retning
+                arrow.style.transform = 'rotate(180deg)'; // Roter pilen
+            } else {
+                instruction.innerHTML = 'Instruks';
+                instruction.appendChild(arrow);
+                arrow.innerHTML = 'expand_more'; // Skift pilens retning
+                arrow.style.transform = 'rotate(0deg)'; // Roter pilen tilbage
+            }
+        });
+    });
+}
+
+// Kald initializeInstructions når DOM'en er indlæst
+document.addEventListener('DOMContentLoaded', initializeInstructions);
