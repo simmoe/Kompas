@@ -281,11 +281,9 @@ function updateWeekDisplay() {
     newFocusDiv.elt.setAttribute('data-index', newIndex);
   
     // Fokusområde label og input
-    let c = createDiv().addClass('focusTitle')
-    
+    let c = createDiv().addClass('focusTitle')    
     let labelTitle = createElement('label', 'Fokusområde:');
     labelTitle.attribute('for', 'focus-title-' + newIndex);
-    
     c.child(labelTitle);
     
     let titleInput = createInput('');
@@ -296,16 +294,19 @@ function updateWeekDisplay() {
     newFocusDiv.child(c);
     
     // Motivation label og input
+    let d = createDiv().addClass('focusTitle')
+
     let labelMotivation = createElement('label', 'Motivation:');
     labelMotivation.attribute('for', 'focus-motivation-' + newIndex);
-    newFocusDiv.child(labelMotivation);
+    d.child(labelMotivation);
     
     let motivationInput = createInput('');
     motivationInput.attribute('id', 'focus-motivation-' + newIndex);
     motivationInput.attribute('name', `focus[${newIndex}].motivation`);
     motivationInput.attribute('placeholder', 'Hvorfor er dette vigtigt for dig?');
     motivationInput.attribute('required', '');
-    newFocusDiv.child(motivationInput);
+    d.child(motivationInput);
+    newFocusDiv.child(d);
     
     // Checkbox-container med label og checkbox
     let checkboxDiv = createDiv();
