@@ -24,7 +24,7 @@ function showInfo(message) {
 
 
   function populateUIFromModel() {
-    // For eksempel for fokusområder:
+    // Fokusområder:
     if (currentWeekData.focus && Array.isArray(currentWeekData.focus)) {
       currentWeekData.focus.forEach((item, index) => {
         // Find eksisterende DOM-elementer ved hjælp af id eller name
@@ -43,240 +43,14 @@ function showInfo(message) {
         // Opdater elementernes værdier ud fra modellen
         titleInput.value(item.title);
         motivationInput.value(item.motivation);
+        autoResize(motivationInput.elt);
         if (checkboxInput && checkboxInput.elt) {
           checkboxInput.elt.checked = item.isMain;
         }
       });
     }
   }
-  
 
-  function updateFocusItemModel(focusItem) {
-    // Find indekset for denne container blandt alle .focus-item elementer
-    const allFocusItems = selectAll('.focus-item');
-    let index = allFocusItems.findIndex(item => item.elt === focusItem.elt);
-  
-    const textInputs = focusItem.elt.querySelectorAll('input[type="text"]');
-    const titleValue = textInputs[0] ? textInputs[0].value : "";
-    const motivationValue = textInputs[1] ? textInputs[1].value : "";
-  
-    const checkbox = focusItem.elt.querySelector('input[type="checkbox"]');
-    const isMain = checkbox ? checkbox.checked : false;
-  
-    if (!currentWeekData.focus) {
-      currentWeekData.focus = [];
-    }
-    
-    currentWeekData.focus[index] = {
-      title: titleValue,
-      motivation: motivationValue,
-      isMain: isMain
-    };
-  
-    // Sæt dirty flag til true ved ændringer
-    hasChanged = true;
-    
-    //console.log("Opdateret focus item ved index", index, currentWeekData.focus[index]);
-  }
-  
-  function initializeProjects() {
-    // Hvis 'projects' ikke findes, initialiser den som et tomt array
-    if (!currentWeekData.projects) {
-      currentWeekData.projects = [];
-    }
-    
-    // For hvert fokusområde i currentWeekData.focus
-    for (let i = 0; i < currentWeekData.focus.length; i++) {
-      // Hvis et projekt ikke findes for dette indeks, opret det
-      if (!currentWeekData.projects[i]) {
-        currentWeekData.projects[i] = {
-          focusId: i,
-          title: currentWeekData.focus[i].title, // Samme titel som fokusområdet
-          tasks: []  // Tom liste til delopgaver
-        };
-      } else {
-        // Hvis projektet allerede findes, synkroniser titlen
-        currentWeekData.projects[i].title = currentWeekData.focus[i].title;
-      }
-    }
-    
-    // Hvis projects-arrayet er længere end focus-arrayet, trim det
-    if (currentWeekData.projects.length > currentWeekData.focus.length) {
-      currentWeekData.projects.splice(currentWeekData.focus.length);
-    }
-    
-    console.log("Projects initialized:", currentWeekData.projects);
-    
-    // Opbyg UI for projektlisten
-    populateProjectsUI();
-  }
-  
-  function createTaskElement(task, projectIndex) {
-    let taskDiv = createDiv().addClass('task-item');
-
-    // Label for hovedopgave
-    let taskTitleLabel = createElement('label', 'Hovedopgave:').addClass('task-title-label');
-
-    let taskTitleInput = createInput(task.title || '').addClass('task-title-input');
-    taskTitleInput.attribute('placeholder', 'Titel');
-    taskTitleInput.elt.addEventListener('input', function() {
-        task.title = taskTitleInput.value();
-        hasChanged = true;
-    });
-    taskTitleInput.elt.addEventListener('blur', function() {
-        if (taskTitleInput.value().trim() !== '') {
-            setWeek(currentWeekNumber);
-            hasChanged = false;
-            showInfo("Opgavelisten er gemt");
-            console.log("Current task data:", task);
-        }
-    });
-
-    // Label for underopgaver
-    let taskDescriptionLabel = createElement('label', 'Underopgaver:').addClass('task-description-label');
-
-    let taskDescriptionTextArea = createElement('textarea').addClass('task-description-textarea');
-    taskDescriptionTextArea.attribute('placeholder', 'Underopgaver adskilt af linjeskift');
-    taskDescriptionTextArea.html(task.subtasks ? task.subtasks.map(subtask => subtask.title).join('\n') : '');
-    autoResizeTextarea(taskDescriptionTextArea.elt);
-    taskDescriptionTextArea.elt.addEventListener('input', function() {
-        task.subtasks = taskDescriptionTextArea.value().split('\n').map(title => ({ title, completed: false, subtasks: [] }));
-        autoResizeTextarea(taskDescriptionTextArea.elt);
-        hasChanged = true;
-    });
-    taskDescriptionTextArea.elt.addEventListener('blur', function() {
-        setWeek(currentWeekNumber);
-        hasChanged = false;
-        showInfo("Opgavelisten er gemt");
-        console.log("Current task data:", task);
-    });
-
-    let deleteIcon = createSpan('delete').addClass('material-icons delete-icon');
-    deleteIcon.mousePressed(function() {
-        taskDiv.remove();
-        currentWeekData.projects[projectIndex].tasks = currentWeekData.projects[projectIndex].tasks.filter(t => t !== task);
-        hasChanged = true;
-        setWeek(currentWeekNumber);
-        showInfo("Opgavelisten er gemt");
-    });
-
-    // Tilføj elementerne i den ønskede rækkefølge
-    taskDiv.child(taskTitleLabel);
-    taskDiv.child(taskTitleInput);
-    taskDiv.child(taskDescriptionLabel);
-    taskDiv.child(taskDescriptionTextArea);
-    taskDiv.child(deleteIcon);
-
-    return taskDiv;
-}
-
-function populateProjectsUI() {
-    let container = select("#project-list");
-    container.html("");
-
-    if (!currentWeekData.projects) {
-        currentWeekData.projects = [];
-    }
-
-    currentWeekData.projects.forEach((project, projectIndex) => {
-        let projectContainer = createDiv().addClass("project-container");
-        projectContainer.elt.setAttribute("data-project-index", projectIndex);
-
-        // Titel på projektet
-        projectContainer.child(createElement("h2", project.title || "Ukendt Fokusområde"));
-
-        // Opgaveliste
-        let taskListContainer = createDiv().addClass('task-list-container');
-        project.tasks.forEach(task => {
-            let taskElement = createTaskElement(task, projectIndex);
-            taskListContainer.child(taskElement);
-        });
-
-        projectContainer.child(taskListContainer);
-
-        // Tilføj opgave ikon
-        let addTaskIcon = createSpan('add').addClass('material-icons add-task-icon');
-        addTaskIcon.mousePressed(function() {
-            let task = { title: '', completed: false, subtasks: [] };
-            project.tasks.push(task);
-            let taskElement = createTaskElement(task, projectIndex);
-            taskListContainer.child(taskElement);
-            hasChanged = true;
-        });
-
-        projectContainer.child(addTaskIcon);
-        container.child(projectContainer);
-    });
-}  
-  function tasksToMarkdown(tasks, level = 1) {
-    let markdown = "";
-    tasks.forEach(task => {
-      // Opret prefix med et antal bindestreger svarende til niveauet
-      let prefix = "-".repeat(level);
-      markdown += `${prefix} ${task.description}\n`;
-      // Hvis der findes underopgaver, kaldes funktionen rekursivt
-      if (task.subtasks && task.subtasks.length > 0) {
-        markdown += tasksToMarkdown(task.subtasks, level + 1);
-      }
-    });
-    return markdown;
-  }
-
-  function markdownToTasks(mdText) {
-    // Split teksten op i linjer og filtrer tomme linjer fra
-    let lines = mdText.split("\n").filter(line => line.trim() !== "");
-    let tasks = []; // Array til rodniveau opgaver
-    let stack = []; // Stack til at holde de seneste opgaver på hvert niveau
-  
-    lines.forEach(line => {
-      // Tjek om linjen starter med en bindestreg (efter trim)
-      if (!line.trim().startsWith("-")) {
-        // Tilføj en bindestreg, hvis den mangler
-        line = "-" + line;
-      }
-      // Ændret regex: \s* for at tillade ingen eller flere mellemrum
-      let match = line.match(/^(-+)\s*(.*)/);
-      if (match) {
-        let level = match[1].length;  // Niveau baseret på antal bindestreger
-        let description = match[2].trim();
-  
-        let task = { description: description, completed: false, subtasks: [] };
-  
-        if (level === 1) {
-          // Hvis niveau 1, tilføj til roden og sæt stack[0] til denne opgave
-          tasks.push(task);
-          stack[0] = task;
-        } else {
-          // For niveau >1 skal vi finde den overordnede opgave fra niveau-1
-          if (stack[level - 2]) {
-            stack[level - 2].subtasks.push(task);
-            // Gem denne opgave på den aktuelle niveau i stacken
-            stack[level - 1] = task;
-          } else {
-            // Hvis der ikke findes en forælder for det aktuelle niveau, tilføj opgaven til roden
-            tasks.push(task);
-            stack[level - 1] = task;
-          }
-        }
-      }
-    });
-  
-    return tasks;
-  }
-  
-  
-  // Funktion til at auto-justere højden
-function autoResizeTextarea(textarea) {
-    textarea.style.height = "auto";
-    textarea.style.height = textarea.scrollHeight + "px";
-  }
-  
-
-// Opdaterer visningen af ugen i footer
-function updateWeekDisplay() {
-    select("#current-week").html("Uge " + currentWeekNumber);
-  }
-  
   function addFocusItem() {
     let container = select('#focus-items');
     let newIndex = container.elt.childElementCount;
@@ -298,20 +72,33 @@ function updateWeekDisplay() {
     c.child(titleInput)
     newFocusDiv.child(c);
     
-    // Motivation label og input
-    let d = createDiv().addClass('focusTitle')
-
-    let labelMotivation = createElement('label', 'Motivation:');
+    // Motivation label og textarea
+    let d = createDiv().addClass('focusTitle');
+  
+    let labelMotivation = createElement('label', 'Værdi:');
     labelMotivation.attribute('for', 'focus-motivation-' + newIndex);
     d.child(labelMotivation);
     
-    let motivationInput = createInput('');
-    motivationInput.attribute('id', 'focus-motivation-' + newIndex);
-    motivationInput.attribute('name', `focus[${newIndex}].motivation`);
-    motivationInput.attribute('placeholder', 'Hvorfor er dette vigtigt for dig?');
-    motivationInput.attribute('required', '');
-    d.child(motivationInput);
+    let motivationTextArea = createElement('textarea');
+    motivationTextArea.attribute('id', 'focus-motivation-' + newIndex);
+    motivationTextArea.attribute('name', `focus[${newIndex}].motivation`);
+    motivationTextArea.attribute('placeholder', 'Hvad giver det dig at opfylde dine målsætninger for dette fokusområde?');
+    motivationTextArea.attribute('required', '');
+    d.child(motivationTextArea);
     newFocusDiv.child(d);
+    
+    // Auto-resize functionality
+    setupAutoResize(motivationTextArea.elt);
+    motivationTextArea.elt.addEventListener("input", function() {
+        updateFocusItemModel(newFocusDiv);
+        hasChanged = true;
+    });
+    motivationTextArea.elt.addEventListener("blur", function() {
+        updateFocusItemModel(newFocusDiv);
+        initializeProjects();
+        hasChanged = true;
+        setWeek();
+    });
     
     // Checkbox-container med label og checkbox
     let checkboxDiv = createDiv();
@@ -381,6 +168,179 @@ function updateWeekDisplay() {
   }
   
   
+
+  function updateFocusItemModel(focusItem) {
+    // Find indekset for denne container blandt alle .focus-item elementer
+    const allFocusItems = selectAll('.focus-item');
+    let index = allFocusItems.findIndex(item => item.elt === focusItem.elt);
+  
+    const titleInput = focusItem.elt.querySelector('input[type="text"]');
+    const titleValue = titleInput ? titleInput.value : "";
+  
+    const motivationTextArea = focusItem.elt.querySelector('textarea');
+    const motivationValue = motivationTextArea ? motivationTextArea.value : "";
+  
+    const checkbox = focusItem.elt.querySelector('input[type="checkbox"]');
+    const isMain = checkbox ? checkbox.checked : false;
+  
+    if (!currentWeekData.focus) {
+      currentWeekData.focus = [];
+    }
+  
+    currentWeekData.focus[index] = {
+      title: titleValue,
+      motivation: motivationValue,
+      isMain: isMain
+    };
+  
+    // Sæt dirty flag til true ved ændringer
+    hasChanged = true;
+  
+    //console.log("Opdateret focus item ved index", index, currentWeekData.focus[index]);
+  }
+  
+  function initializeProjects() {
+    // Hvis 'projects' ikke findes, initialiser den som et tomt array
+    if (!currentWeekData.projects) {
+      currentWeekData.projects = [];
+    }
+    
+    // For hvert fokusområde i currentWeekData.focus
+    for (let i = 0; i < currentWeekData.focus.length; i++) {
+      // Hvis et projekt ikke findes for dette indeks, opret det
+      if (!currentWeekData.projects[i]) {
+        currentWeekData.projects[i] = {
+          focusId: i,
+          title: currentWeekData.focus[i].title, // Samme titel som fokusområdet
+          tasks: []  // Tom liste til delopgaver
+        };
+      } else {
+        // Hvis projektet allerede findes, synkroniser titlen
+        currentWeekData.projects[i].title = currentWeekData.focus[i].title;
+      }
+    }
+    
+    // Hvis projects-arrayet er længere end focus-arrayet, trim det
+    if (currentWeekData.projects.length > currentWeekData.focus.length) {
+      currentWeekData.projects.splice(currentWeekData.focus.length);
+    }
+    
+    console.log("Projects initialized:", currentWeekData.projects);
+    
+    // Opbyg UI for projektlisten
+    populateProjectsUI();
+  }
+  
+  function createTaskElement(task, projectIndex) {
+    let taskDiv = createDiv().addClass('task-item');
+
+    // Label for hovedopgave
+    let taskTitleLabel = createElement('label', 'Hovedopgave:').addClass('task-title-label');
+
+    let taskTitleInput = createInput(task.title || '').addClass('task-title-input');
+    taskTitleInput.attribute('placeholder', 'Titel');
+    taskTitleInput.elt.addEventListener('input', function() {
+        task.title = taskTitleInput.value();
+        hasChanged = true;
+    });
+    taskTitleInput.elt.addEventListener('blur', function() {
+        if (taskTitleInput.value().trim() !== '') {
+            setWeek(currentWeekNumber);
+            hasChanged = false;
+            showInfo("Opgavelisten er gemt");
+            console.log("Current task data:", task);
+        }
+    });
+
+    // Label for underopgaver
+    let taskDescriptionLabel = createElement('label', 'Underopgaver:').addClass('task-description-label');
+
+    let taskDescriptionTextArea = createElement('textarea').addClass('task-description-textarea');
+    taskDescriptionTextArea.attribute('placeholder', 'Underopgaver adskilt af linjeskift');
+    taskDescriptionTextArea.html(task.subtasks ? task.subtasks.map(subtask => subtask.title).join('\n') : '');
+    setupAutoResize(taskDescriptionTextArea.elt);
+    taskDescriptionTextArea.elt.addEventListener('input', function() {
+        task.subtasks = taskDescriptionTextArea.value().split('\n').map(title => ({ title, completed: false, subtasks: [] }));
+        hasChanged = true;
+    });
+    taskDescriptionTextArea.elt.addEventListener('blur', function() {
+        setWeek(currentWeekNumber);
+        hasChanged = false;
+        showInfo("Opgavelisten er gemt");
+        console.log("Current task data:", task);
+    });
+
+    let deleteIcon = createSpan('delete').addClass('material-icons delete-icon');
+    deleteIcon.mousePressed(function() {
+        taskDiv.remove();
+        currentWeekData.projects[projectIndex].tasks = currentWeekData.projects[projectIndex].tasks.filter(t => t !== task);
+        hasChanged = true;
+        setWeek(currentWeekNumber);
+        showInfo("Opgavelisten er gemt");
+    });
+
+    // Tilføj elementerne i den ønskede rækkefølge
+    taskDiv.child(taskTitleLabel);
+    taskDiv.child(taskTitleInput);
+    taskDiv.child(taskDescriptionLabel);
+    taskDiv.child(taskDescriptionTextArea);
+    taskDiv.child(deleteIcon);
+
+    return taskDiv;
+}
+
+function populateProjectsUI() {
+    let container = select("#project-list");
+    container.html("");
+
+    if (!currentWeekData.projects) {
+        currentWeekData.projects = [];
+    }
+
+    currentWeekData.projects.forEach((project, projectIndex) => {
+        let projectContainer = createDiv().addClass("project-container");
+        projectContainer.elt.setAttribute("data-project-index", projectIndex);
+
+        // Titel på projektet
+        projectContainer.child(createElement("h2", project.title || "Ukendt Fokusområde"));
+
+        // Opgaveliste
+        let taskListContainer = createDiv().addClass('task-list-container');
+        project.tasks.forEach(task => {
+            let taskElement = createTaskElement(task, projectIndex);
+            taskListContainer.child(taskElement);
+        });
+
+        projectContainer.child(taskListContainer);
+
+        // Tilføj opgave ikon
+        let addTaskIcon = createSpan('add').addClass('material-icons add-task-icon');
+        addTaskIcon.mousePressed(function() {
+            let task = { title: '', completed: false, subtasks: [] };
+            project.tasks.push(task);
+            let taskElement = createTaskElement(task, projectIndex);
+            taskListContainer.child(taskElement);
+            hasChanged = true;
+        });
+
+        projectContainer.child(addTaskIcon);
+        container.child(projectContainer);
+    });
+}  
+  // Funktion til at auto-justere højden
+function autoResizeTextarea(textarea) {
+    textarea.style.height = "auto";
+    textarea.style.height = textarea.scrollHeight + "px";
+  }
+  
+
+// Opdaterer visningen af ugen i footer
+function updateWeekDisplay() {
+    select("#current-week").html("Uge " + currentWeekNumber);
+  }
+  
+
+  
   // Eksempel: Opret textarea til TRIN TRE - "Hvad er du stolt af?"
 function populateStolthedUI() {
     let container = select("#page3 .content"); // Antag en container i din side til trin 3
@@ -416,11 +376,22 @@ function populateStolthedUI() {
     });
   }
 
-  // Global auto-resize funktion
+  function setupAutoResize(textarea) {
+    textarea.style.overflow = "hidden";
+    textarea.style.resize = "none";
+    autoResize(textarea);
+    textarea.addEventListener("input", function() {
+        autoResize(this);
+    });
+    textarea.addEventListener("focus", function() {
+        autoResize(this);
+    });
+}
+
 function autoResize(textarea) {
     textarea.style.height = "auto";
     textarea.style.height = textarea.scrollHeight + "px";
-  }
+}
   
   function populateLaeringOgTabUI() {
     // Hent eller opret containeren til side 4 (TRIN FIRE)

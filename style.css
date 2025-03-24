@@ -222,7 +222,7 @@ p{
   }
   
   .top-goal-btn {
-    width: 200px;
+    min-width: 200px;
     transition: background-color 0.3s ease;
   }
   
@@ -315,7 +315,7 @@ p{
   textarea {
     width: 100%;
     font-family: Open-Sans, sans-serif;
-    min-height: 3rem;      /* Mindste højde – kan justeres efter behov */
+    min-height: 6rem;      /* Mindste højde – kan justeres efter behov */
     max-height: 100vh;     /* Valgfrit: en øvre grænse for højden */
     overflow: hidden;      /* Skjul scrollbars, da vi auto-resizer via JS */
     resize: none;          /* Forhindr manuel resizing */
@@ -326,11 +326,11 @@ p{
     padding: 2rem;
     border-radius: 4px;
     box-sizing: border-box;
-  }
-
-  textarea {
     white-space: pre-wrap;
-}
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0);
+    color: whitesmoke;
+    }
 
 textarea::before {
     content: attr(placeholder);
@@ -342,11 +342,5 @@ textarea:focus::before {
     display: none;
 }
   
-
-.task-item textarea, #calendar-container textarea, #forbered-container textarea, #laering-container textarea, #opgaver-container textarea, #stolthed-textarea, #plan-forud-textarea {
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0);
-  color: whitesmoke;
-}
 
 
