@@ -20,50 +20,42 @@
     <script src="index.js"></script>
 </head>
 <body>
-    <div class="page visible" id="page1" data-topic="overblik">
-        <h1 class="blue">TRIN ET</h1>
-        <h1 class="white">THE BIG PICTURE</h1>
-        <hr>
-        <div class="instruction">
-          <p>"The future you see is the future you get." – Robert G. Allen</p>
-          <p>Reflekter over dine vigtigste livsfokusområder. Indtast fx "Sundhed", "Krop" og "Kærlighed" – og skriv nedenfor din motivation for hvert punkt. (Tid: 10-30 minutter første gang, herefter 2-5 minutter)</p>
-        </div>
-        <hr>            
-        <div>
-            <button type="button" id="add-focus-btn">Tilføj fokusområde</button>
-        </div>
-        <div class="focus-items" id="focus-items">
-        </div>
+  <div class="page visible" id="page1" data-topic="overblik" data-title="Overblik">
+    <h1 class="blue">TRIN ET</h1>
+    <h1 class="white">THE BIG PICTURE</h1>
+    <hr>
+    <div class="menu"></div>
+    <div class="instruction">
+      <p>"The future you see is the future you get." – Robert G. Allen</p>
+      <p>Reflekter over dine vigtigste målsætninger. Brug et par minutter hver gang til at læse og redigere listen. Forsøg at skabe overordnede titler, uden at de bliver fluffy fordi de skal rumme for meget.</p>
+      <p>Hvis du ser målsætningen som noget du skal fokusere på i denne periode, så sæt kryds i "Hovedfokus"</p>
+    </div>
+    <hr>            
+    <div>
+        <button type="button" id="add-focus-btn">Tilføj målsætning </button>
+      </div>
+      <div class="focus-items" id="focus-items">
+      </div>
     </div>
         
-    <div class="page" id="page2" data-topic="projekter">
-      <h1 class="blue">TRIN TO</h1>
-      <h1 class="white">PROJEKTLISTEN</h1>
-      <hr>
-      <div class="instruction">
-        <p>"Get everything into IN" – David Allen</p>
-        <p>Opdel hvert af dine mål i delopgaver, så de bliver lettere at overskue og planlægge. Brug 10-30 minutter første gang og 2-5 minutter til løbende justering.</p>
-      </div>
-      <hr>
+      <div class="page" id="page2" data-topic="projekter" data-title="Projekter">
+        <h1 class="blue">TRIN TO</h1>
+        <h1 class="white">PROJEKTLISTEN</h1>
+        <hr>
+        <div class="menu"></div>
+        <div class="instruction">
+      <p>"Get everything into IN" - David Allen</p>
+      <p>Opdel hvert af dine mål i delopgaver, så de bliver lettere at overskue og planlægge. Brug 5-10 minutter til løbende justering.</p>
+    </div>
+    <hr>
       <div id="project-list"></div>
     </div>
-    
-    <div class="page" id="page3" data-topic="stolthed">
+        
+    <div class="page" id="page3" data-topic="læring" data-title="Refleksion">      
       <h1 class="blue">TRIN TRE</h1>
-      <h1 class="white">HVAD ER DU STOLT AF?</h1>
+      <h1 class="white">REFKLEKSION </h1>
       <hr>
-      <div class="instruction">
-        <p>"The more you praise and celebrate your life, the more there is in life to celebrate." - Oprah Winfrey</p>
-        <p>Skriv ned mindst 10 ting - både store og små - fra forrige periode, som du er stolt af. Tid: 2-5 minutter.</p>
-      </div>
-      <hr>
-      <div class="content"></div>
-    </div>
-    
-    <div class="page" id="page4" data-topic="læring">      
-      <h1 class="blue">TRIN FIRE</h1>
-      <h1 class="white">LÆRING OG TAB</h1>
-      <hr>
+      <div class="menu"></div>
       <div class="instruction">
         <p>"Learn from your failure and it’s not failure. Do it again and it is." – Live Your Legend</p>
         <p>"Get over your losses instead of storing them in the pain body." – Falcon Ener Kise</p>
@@ -73,22 +65,11 @@
       <div id="laering-container"></div>
     </div>
     
-    <div class="page" id="page5" data-topic="analyse">
-      <h1 class="blue">TRIN FEM</h1>
-      <h1 class="white">ANALYSER HVAD DER IKKE SKETE</h1>
+    <div class="page" id="page4" data-topic="forpligtelse" data-title="Kalender">
+      <h1 class="blue">TRIN FIRE</h1>
+      <h1 class="white">FORPLIGT DIG TIL DINE PRIMÆRE MÅLSÆTNINGER LIGE NU</h1>
       <hr>
-      <div class="instruction">
-        <p>"Tell me where I'm going to die, so I won't go there." - Charlie Munger</p>
-        <p>Gennemgå dine topmål fra forrige periode og notér de ting, som ikke skete som planlagt – hvorfor, og hvad der skal ændres. Tid: 2-10 minutter.</p>
-      </div>
-      <hr>
-      <div id="forbered-container"></div>
-    </div>
-    
-    <div class="page" id="page6" data-topic="forpligtelse">
-      <h1 class="blue">TRIN SEKS</h1>
-      <h1 class="white">FORPLIGT DIG TIL DINE TOPMÅL</h1>
-      <hr>
+      <div class="menu"></div>
       <div class="instruction">
         <p>"Focus is the key to the world." – William Dinsmore III</p>
         <p>Vælg 3-6 topmål for den kommende periode, der afspejler dine overordnede fokusområder – inklusiv vigtige begivenheder, hvis nødvendigt – og planlæg kerneopgaverne. Tid: 2-5 minutter.</p>
@@ -99,17 +80,18 @@
       <div id="calendar-container"></div>      
     </div>
     
-    <div class="page" id="page7" data-topic="planlægning">
-      <h1 class="blue">TRIN SYV</h1>
+    <div class="page" id="page5" data-topic="planlægning" data-title="Kig fremad">
+      <h1 class="blue">TRIN FEM</h1>
       <h1 class="white">PLANLÆG FORUD</h1>
       <hr>
+      <div class="menu"></div>
       <div class="instruction">
         <p>Noter, hvad du allerede nu ved, er vigtigt at fokusere på i næste periode - de elementer, du med sikkerhed ikke kan nå i denne uge. Tid: 2-5 minutter.</p>
       </div>
       <hr>
       <div id="plan-forud-container"></div>
     </div>
-
+    
     <!-- Footeren, der placeres fast nederst på siden -->
     <div class="footer-fixed">
       <div class="footer-nav left">

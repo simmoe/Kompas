@@ -33,13 +33,34 @@ function setup() {
   getWeek();
 }
 
+let isChangingWeek = false; // Flag to indicate if a week change is in progress
+
 function changeWeek(direction) {
-  currentWeekNumber += direction;
-  if (currentWeekNumber < 1) {
+  if (hasChanged) {
+    console.log('Calling setWeek from changeWeek');
+    setWeek().then(() => {
+      hasChanged = false;
+      isChangingWeek = true; // Set the flag to indicate a week change is in progress
+      currentWeekNumber += direction;
+      if (currentWeekNumber < 1) {
+        currentWeekNumber = 1;
+      }
+      updateWeekDisplay();
+      getWeek().then(() => {
+        isChangingWeek = false; // Reset the flag after the week change is complete
+      });
+    });
+  } else {
+    isChangingWeek = true; // Set the flag to indicate a week change is in progress
+    currentWeekNumber += direction;
+    if (currentWeekNumber < 1) {
       currentWeekNumber = 1;
+    }
+    updateWeekDisplay();
+    getWeek().then(() => {
+      isChangingWeek = false; // Reset the flag after the week change is complete
+    });
   }
-  updateWeekDisplay();
-  getWeek();
 }
 
 function updateWeekDisplay() {
@@ -47,6 +68,7 @@ function updateWeekDisplay() {
 }
 
 async function getWeek() {
+  console.log('Trying to fetch week data for week', currentWeekNumber);
   const docPath = `/kompas/user_1/weeks/week_${currentWeekNumber}`;
   try {
     const docRef = firebase.firestore().doc(docPath);
@@ -54,7 +76,8 @@ async function getWeek() {
     if (docSnap.exists) {
       currentWeekData = docSnap.data();
       console.log(`Ugedata for uge ${currentWeekNumber} hentet:`, currentWeekData);
-      // Opdater UI'en med den hentede data
+      // Log the full currentWeekData object as a backup
+      //console.log('Backup of currentWeekData:', JSON.stringify(currentWeekData));
       populateAllUI();
     } else {
       console.log(`Ingen data for uge ${currentWeekNumber} findes. Initialiserer et tomt objekt.`);
@@ -66,11 +89,16 @@ async function getWeek() {
 }
 
 async function setWeek() {
+  if (!hasChanged || isChangingWeek) {
+    console.log('No changes detected or week change in progress, skipping setWeek');
+    return;
+  }
   const docPath = `/kompas/user_1/weeks/week_${currentWeekNumber}`;
   try {
     const docRef = firebase.firestore().doc(docPath);
     await docRef.set(currentWeekData, { merge: true });
-    console.log(`Ugedata for uge ${currentWeekNumber} opdateret:`, currentWeekData);
+    console.log(`SetWeek: Ugedata for uge ${currentWeekNumber} opdateret:`, currentWeekData);
+    hasChanged = false; // Reset the flag after saving
   } catch (error) {
     console.error("Fejl ved opdatering af ugedata:", error);
   }
@@ -87,10 +115,10 @@ async function copyLastWeekData(newWeekNumber) {
     const docSnap = await docRef.get();
     if (docSnap.exists) {
       currentWeekData = docSnap.data();
-      console.log(`Ugedata for uge ${previousWeekNumber} hentet`);
+      currentWeekData.weekNumber = newWeekNumber;
+      console.log(`Ugedata for uge ${previousWeekNumber} hentet og opdateret til currentWeekData`);
       // Opdater UI'en med den hentede data
       populateAllUI();
-      currentWeekData.weekNumber = newWeekNumber;
       console.log("Data kopieret til ny uge:", currentWeekData);
       showInfo("Data kopieret fra sidste uge.");
     } else {
@@ -107,13 +135,12 @@ async function copyLastWeekData(newWeekNumber) {
 
 function populateAllUI() {
   populateUIFromModel();
+  initializeProjects();
   populateProjectsUI();
-  populateCalendarUI();
-  populateStolthedUI();
   populateLaeringOgTabUI();
-  populateForberedUI();
-  populatePlanForudUI();
   populateTopGoalsUI(); // Tilføj denne linje for at sikre, at topmålene også opdateres
+  populateCalendarUI();
+  populatePlanForudUI();
 }
 
 function shiftPage(input) {
@@ -138,19 +165,18 @@ function shiftPage(input) {
   let newPage = select("#page" + currentPage);
   let topic = newPage.elt.getAttribute("data-topic");
   
-  if (topic === "stolthed") {
-    populateStolthedUI();
+  if (topic === "overblik") {
+    populateUIFromModel();
   } else if (topic === "projekter") {
     initializeProjects();
     populateProjectsUI();
   } else if (topic === "læring") {
     populateLaeringOgTabUI();
-  } else if (topic === "analyse") {
-    populateForberedUI();
-  } else if (topic === "planlægning") {
-    populatePlanForudUI();
   } else if (topic === "forpligtelse") {
     populateTopGoalsUI();
+    populateCalendarUI();
+  } else if (topic === "planlægning") {
+    populatePlanForudUI();
   }
   // Tilføj evt. flere tjek for andre sider...
 }

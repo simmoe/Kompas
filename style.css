@@ -19,6 +19,13 @@ body {
 body::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
+
+.menu-container{
+  display:grid;
+  grid-auto-flow: column;
+  color:whitesmoke;
+
+}
 .page{
     position: fixed;
     top: 0;

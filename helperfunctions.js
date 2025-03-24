@@ -18,7 +18,7 @@ function showInfo(message) {
     // Fjern infoboksen efter 1 sekund
     setTimeout(() => {
       infoBox.removeClass('visible');
-    }, 2000);
+    }, 1400);
   }
   
 
@@ -61,14 +61,14 @@ function showInfo(message) {
   
     // Fokusområde label og input
     let c = createDiv().addClass('focusTitle')    
-    let labelTitle = createElement('label', 'Fokusområde:');
+    let labelTitle = createElement('label', 'Målsætning:');
     labelTitle.attribute('for', 'focus-title-' + newIndex);
     c.child(labelTitle);
     
     let titleInput = createInput('');
     titleInput.attribute('id', 'focus-title-' + newIndex);
     titleInput.attribute('name', `focus[${newIndex}].title`);
-    titleInput.attribute('placeholder', 'Nyt fokusområde');
+    titleInput.attribute('placeholder', 'Ny målsætning');
     c.child(titleInput)
     newFocusDiv.child(c);
     
@@ -82,7 +82,7 @@ function showInfo(message) {
     let motivationTextArea = createElement('textarea');
     motivationTextArea.attribute('id', 'focus-motivation-' + newIndex);
     motivationTextArea.attribute('name', `focus[${newIndex}].motivation`);
-    motivationTextArea.attribute('placeholder', 'Hvad giver det dig at opfylde dine målsætninger for dette fokusområde?');
+    motivationTextArea.attribute('placeholder', 'Hvad giver det dig at opnå denne målsæting?');
     motivationTextArea.attribute('required', '');
     d.child(motivationTextArea);
     newFocusDiv.child(d);
@@ -93,18 +93,21 @@ function showInfo(message) {
         updateFocusItemModel(newFocusDiv);
         hasChanged = true;
     });
-    motivationTextArea.elt.addEventListener("blur", function() {
-        updateFocusItemModel(newFocusDiv);
-        initializeProjects();
-        hasChanged = true;
-        setWeek();
+    motivationTextArea.elt.addEventListener("focusout", function() {
+        if (!isChangingWeek && hasChanged) {
+            updateFocusItemModel(newFocusDiv);
+            initializeProjects();
+            console.log('Calling setWeek from focusout event in addFocusItem');
+            setWeek();
+            showInfo("Fokusområdet er gemt");
+        }
     });
     
     // Checkbox-container med label og checkbox
     let checkboxDiv = createDiv();
     checkboxDiv.addClass('checkbox');
     
-    let labelCheckbox = createElement('label', 'Hovedfokus:');
+    let labelCheckbox = createElement('label', 'Aktuel:');
     labelCheckbox.attribute('for', 'focus-main-' + newIndex);
     checkboxDiv.child(labelCheckbox);
     
@@ -126,7 +129,9 @@ function showInfo(message) {
         populateProjectsUI();
       }
       hasChanged = true;
+      console.log('Calling setWeek from change event in addFocusItem');
       setWeek();
+      showInfo("Fokusområdet er gemt");
       console.log("Checkbox ændret for index:", newIndex, " - Model opdateret.");
     });
     
@@ -151,6 +156,7 @@ function showInfo(message) {
       });
       
       hasChanged = true;
+      console.log('Calling setWeek from delete event in addFocusItem');
       setWeek();
     });
     
@@ -161,6 +167,15 @@ function showInfo(message) {
     inputs.forEach(input => {
       input.addEventListener('input', () => {
         updateFocusItemModel(newFocusDiv);
+      });
+      input.addEventListener('focusout', () => {
+        if (!isChangingWeek && hasChanged) {
+            updateFocusItemModel(newFocusDiv);
+            initializeProjects();
+            console.log('Calling setWeek from focusout event in addFocusItem');
+            setWeek();
+            showInfo("Fokusområdet er gemt");
+        }
       });
     });
     
@@ -192,7 +207,9 @@ function showInfo(message) {
       motivation: motivationValue,
       isMain: isMain
     };
-  
+ 
+    autoResize(motivationTextArea);
+
     // Sæt dirty flag til true ved ændringer
     hasChanged = true;
   
@@ -225,7 +242,7 @@ function showInfo(message) {
       currentWeekData.projects.splice(currentWeekData.focus.length);
     }
     
-    console.log("Projects initialized:", currentWeekData.projects);
+    //console.log("Projects initialized:", currentWeekData.projects);
     
     // Opbyg UI for projektlisten
     populateProjectsUI();
@@ -243,7 +260,7 @@ function showInfo(message) {
         task.title = taskTitleInput.value();
         hasChanged = true;
     });
-    taskTitleInput.elt.addEventListener('blur', function() {
+    taskTitleInput.elt.addEventListener('focusout', function() {
         if (taskTitleInput.value().trim() !== '') {
             setWeek(currentWeekNumber);
             hasChanged = false;
@@ -263,7 +280,7 @@ function showInfo(message) {
         task.subtasks = taskDescriptionTextArea.value().split('\n').map(title => ({ title, completed: false, subtasks: [] }));
         hasChanged = true;
     });
-    taskDescriptionTextArea.elt.addEventListener('blur', function() {
+    taskDescriptionTextArea.elt.addEventListener('focusout', function() {
         setWeek(currentWeekNumber);
         hasChanged = false;
         showInfo("Opgavelisten er gemt");
@@ -302,7 +319,7 @@ function populateProjectsUI() {
         projectContainer.elt.setAttribute("data-project-index", projectIndex);
 
         // Titel på projektet
-        projectContainer.child(createElement("h2", project.title || "Ukendt Fokusområde"));
+        projectContainer.child(createElement("h2", project.title || "Ukendt Målsætning"));
 
         // Opgaveliste
         let taskListContainer = createDiv().addClass('task-list-container');
@@ -368,8 +385,8 @@ function populateStolthedUI() {
       hasChanged = true;
     });
     
-    // Alternativt kan du også opdatere modellen på blur
-    stolthedTextArea.elt.addEventListener("blur", function() {
+    // Alternativt kan du også opdatere modellen på focusout
+    stolthedTextArea.elt.addEventListener("focusout", function() {
       currentWeekData.stolthed = stolthedTextArea.value();
       setWeek();
       showInfo("Stolthed gemt");
@@ -403,17 +420,22 @@ function autoResize(textarea) {
       {
         title: "Lærepunkter og tab",
         key: "laeringOgTab",
-        placeholder: "Skriv ned alt fra forrige periode, du kan lære af – både succeser og fejl..."
+        placeholder: "Reflekter over hvad du kan lære fra sidste periode – både succeser og fejl..."
+      },
+      {
+        title: "Taknemmelighed",
+        key: "taknemmelighed",
+        placeholder: "Skriv mindst 3 ting - både store og små - fra forrige periode, som du er stolt af. Tid: 2-5 minutter."
       },
       {
         title: "Kilder til inspiration",
         key: "inspiration",
-        placeholder: "Skriv ned kilder til inspiration, f.eks. mennesker, bøger, film, situationer..."
+        placeholder: "Skriv hvilke kilder du har fået inspiration fra, f.eks. bøger, film, andet..."
       },
       {
-        title: "Mennesker du gerne vil møde",
+        title: "Mennesker og relationer",
         key: "mennesker",
-        placeholder: "Skriv ned navne og hvorfor du vil møde dem..."
+        placeholder: "Skriv navne ned på mennesker du har haft glæde af i denne periode, måske også menesker du gerne ville møde fremover"
       }
     ];
   
@@ -447,8 +469,8 @@ function autoResize(textarea) {
       secTextArea.elt.addEventListener("focus", function() {
         autoResize(this);
       });
-      // Ved blur opdateres firebase, hvis der er ændringer
-      secTextArea.elt.addEventListener("blur", function() {
+      // Ved focusout opdateres firebase, hvis der er ændringer
+      secTextArea.elt.addEventListener("focusout", function() {
         currentWeekData[sec.key] = secTextArea.value();
         if (hasChanged) {
           setWeek();
@@ -492,7 +514,7 @@ function autoResize(textarea) {
       autoResize(this);
     });
     // Når brugeren forlader feltet, opdater firebase hvis der er ændringer
-    forberedTextArea.elt.addEventListener("blur", function() {
+    forberedTextArea.elt.addEventListener("focusout", function() {
       currentWeekData.forbered = forberedTextArea.value();
       if (hasChanged) {
         setWeek();
@@ -645,7 +667,7 @@ function toggleGoalDetails(goalIndex) {
             hasChanged = true;
         });
 
-        dayTextArea.elt.addEventListener("blur", function() {
+        dayTextArea.elt.addEventListener("focusout", function() {
             const taskTitles = dayTextArea.value().split('\n').map(title => title.trim()).filter(title => title !== '');
             const parsedTasks = taskTitles.map(title => ({ title, completed: false, subtasks: [] }));
             currentWeekData.calendar[dayIndex] = { tasks: parsedTasks }; // Objekt med tasks-egenskab
@@ -681,11 +703,7 @@ function toggleGoalDetails(goalIndex) {
     // Hent eller opret containeren til TRIN SYV – PLANLÆG FORUD (for eksempel med id "plan-forud-container")
     let container = select("#plan-forud-container");
     container.html(""); // Ryd containeren
-    
-    // Opret en instruktions-tekst
-    let instruction = createElement("p", "Noter hvad du allerede nu ved er vigtigt at fokusere på i næste periode:");
-    container.child(instruction);
-    
+        
     // Opret et textarea til noterne
     let planTextArea = createElement("textarea");
     planTextArea.attribute("id", "plan-forud-textarea");
@@ -709,7 +727,7 @@ function toggleGoalDetails(goalIndex) {
     planTextArea.elt.addEventListener("focus", function() {
       autoResize(this);
     });
-    planTextArea.elt.addEventListener("blur", function() {
+    planTextArea.elt.addEventListener("focusout", function() {
       currentWeekData.planForud = planTextArea.value();
       if (hasChanged) {
         setWeek();
@@ -721,41 +739,40 @@ function toggleGoalDetails(goalIndex) {
     autoResize(planTextArea.elt);
   }
 
-// Funktion til at tilføje fold-ud funktionalitet til instruktioner
-function initializeInstructions() {
+  function initializeInstructions() {  
     const instructions = document.querySelectorAll('.instruction');
     instructions.forEach(instruction => {
-        // Gem den oprindelige tekst
-        const fullText = instruction.innerHTML;
-        // Sæt en kort tekst som standard
-        instruction.innerHTML = 'Instruks';
-        instruction.style.cursor = 'pointer';
-        instruction.style.color = 'blue'; // Gør teksten klikbar
-        instruction.style.display = 'flex';
-        instruction.style.alignItems = 'center';
-
-        // Tilføj en pil fra Google Material Icons
-        const arrow = document.createElement('span');
-        arrow.classList.add('material-icons', 'arrow-icon');
-        arrow.innerHTML = 'expand_more';
-        arrow.style.marginLeft = '8px'; // Tilføj lidt afstand mellem tekst og pil
-        instruction.appendChild(arrow);
-
-        // Tilføj en klik-hændelse for at folde ud og ind
-        instruction.addEventListener('click', function() {
-            if (instruction.innerHTML.startsWith('Instruks')) {
-                instruction.innerHTML = fullText;
-                arrow.innerHTML = 'expand_less'; // Skift pilens retning
-                arrow.style.transform = 'rotate(180deg)'; // Roter pilen
-            } else {
-                instruction.innerHTML = 'Instruks';
-                instruction.appendChild(arrow);
-                arrow.innerHTML = 'expand_more'; // Skift pilens retning
-                arrow.style.transform = 'rotate(0deg)'; // Roter pilen tilbage
-            }
-        });
+      // Gem den oprindelige tekst
+      const fullText = instruction.innerHTML;
+      // Sæt en kort tekst som standard
+      instruction.innerHTML = 'Instruks';
+      instruction.style.cursor = 'pointer';
+      instruction.style.color = 'blue'; // Gør teksten klikbar
+      instruction.style.display = 'flex';
+      instruction.style.alignItems = 'center';
+  
+      // Tilføj en pil fra Google Material Icons
+      const arrow = document.createElement('span');
+      arrow.classList.add('material-icons', 'arrow-icon');
+      arrow.innerHTML = 'expand_more';
+      arrow.style.marginLeft = '8px'; // Tilføj lidt afstand mellem tekst og pil
+      instruction.appendChild(arrow);
+  
+      // Tilføj en klik-hændelse for at folde ud og ind
+      instruction.addEventListener('click', function() {
+        if (instruction.innerHTML.startsWith('Instruks')) {
+          instruction.innerHTML = fullText;
+          arrow.innerHTML = 'expand_less'; // Skift pilens retning
+          arrow.style.transform = 'rotate(180deg)'; // Roter pilen
+        } else {
+          instruction.innerHTML = 'Instruks';
+          instruction.appendChild(arrow);
+          arrow.innerHTML = 'expand_more'; // Skift pilens retning
+          arrow.style.transform = 'rotate(0deg)'; // Roter pilen tilbage
+        }
+      });
     });
-}
+  }
 
 // Kald initializeInstructions når DOM'en er indlæst
 document.addEventListener('DOMContentLoaded', initializeInstructions);
