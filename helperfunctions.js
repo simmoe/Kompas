@@ -537,58 +537,130 @@ function getTopGoals() {
         .filter(({ item }) => item.isMain && item.title.trim() !== "");
 }
 
-// Opbygger TRIN 6 – Topmål UI med knapper og en udvidelsescontainer
+const url = "https://webmail.nextkbh.dk/owa/calendar/8e671bea774a4ed8bc32194123e524e5@nextkbh.dk/616b1a695fa44c0bb544daa9165c0b5d14714702637102088490/S-1-8-568136743-293136663-2427912843-3521603543/reachcalendar.ics"
+
+const proxyUrl = 'https://api.allorigins.win/raw?url=';
+
+async function loadAndDisplayEvents(url) {
+  try {
+      const response = await fetch(proxyUrl + encodeURIComponent(url));
+      const data = await response.text();
+
+      const jcalData = ICAL.parse(data);
+      const vcalendar = new ICAL.Component(jcalData[1]);
+      const vevents = vcalendar.getAllSubcomponents('vevent');
+
+      // Populate the weekly calendar with events
+      vevents.forEach(event => {
+          const icalEvent = new ICAL.Event(event);
+          const eventDate = icalEvent.startDate.toJSDate();
+          const eventDayIndex = (eventDate.getDay() + 6) % 7; // Adjust to start week on Monday (0 = Monday, ..., 6 = Sunday)
+
+          // Ensure the calendar data exists for the day
+          if (!currentWeekData.calendar[eventDayIndex]) {
+              currentWeekData.calendar[eventDayIndex] = { tasks: [] };
+          }
+
+          // Add the event to the day's tasks
+          const eventTitle = `${icalEvent.startDate.toJSDate().toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })} - ${icalEvent.summary}`;
+          currentWeekData.calendar[eventDayIndex].tasks.push({ title: eventTitle, completed: false, subtasks: [] });
+      });
+
+      // Update the UI
+      populateCalendarUI();
+      showInfo("Kalenderbegivenheder tilføjet.");
+  } catch (error) {
+      console.error("Fejl ved indlæsning af kalender:", error);
+  }
+}
+function printTodaysEvents(vevents) {
+  const today = new Date().toISOString().slice(0,10)
+
+  const todaysEvents = vevents
+    .map(event => new ICAL.Event(event))
+    .filter(event => event.startDate.toJSDate().toISOString().slice(0,10) === today)
+
+  let eventsContainer = select('#events')
+  eventsContainer.html('')
+
+  if (todaysEvents.length === 0) {
+    eventsContainer.html("<p>Ingen begivenheder i dag.</p>")
+  } else {
+    todaysEvents.forEach(event => {
+      const start = event.startDate.toJSDate().toLocaleTimeString('da-DK', {hour: '2-digit', minute:'2-digit'})
+      const end = event.endDate.toJSDate().toLocaleTimeString('da-DK', {hour: '2-digit', minute:'2-digit'})
+      let eventElement = createP(`${start} - ${end}: ${event.summary}`)
+      eventElement.parent(eventsContainer)
+    })
+  }
+}
+
+
 function populateTopGoalsUI() {
-    // Hent eller opret containeren til TRIN 6 (f.eks. en div med id "top-goals-container" på side 6)
-    let container = select("#top-goals-container");
-    if (!container) {
-        container = createDiv();
-        container.id("top-goals-container");
-        // Antag, at TRIN 6-siden er #page6
-        select("#page6").child(container);
-    }
-    container.html(""); // Ryd containeren
+  // Hent eller opret containeren til TRIN 6 (f.eks. en div med id "top-goals-container" på side 6)
+  let container = select("#top-goals-container");
+  if (!container) {
+      container = createDiv();
+      container.id("top-goals-container");
+      // Antag, at TRIN 6-siden er #page6
+      select("#page6").child(container);
+  }
+  container.html(""); // Ryd containeren
 
-    // Hent topmål fra den lokale model
-    let topGoals = getTopGoals();
+  // Hent topmål fra den lokale model
+  let topGoals = getTopGoals();
 
-    // Opret en paragraf med instruktion
-    let instr = createElement("p", "Dine topmål for næste periode er:");
-    container.child(instr);
+  // Opret en paragraf med instruktion
+  let instr = createElement("p", "Dine topmål for næste periode er:");
+  container.child(instr);
 
-    // Opret en container til topmål-knapperne
-    let buttonContainer = createDiv();
-    buttonContainer.addClass("top-goals-buttons");
-    container.child(buttonContainer);
+  // Opret en container til topmål-knapperne
+  let buttonContainer = createDiv();
+  buttonContainer.addClass("top-goals-buttons");
+  container.child(buttonContainer);
 
-    // For hvert topmål oprettes en knap
-    topGoals.forEach(({ item, index }) => {
-        let btn = createButton(item.title);
-        // Tilføj knappeklasser – knappen skal have en fast bredde på 200px (styres via CSS)
-        btn.addClass("top-goal-btn");
-        // Sæt en data-attribut med indekset
-        btn.attribute("data-goal-index", index);
-        // Når knappen trykkes, kaldes toggleGoalDetails for at vise/skjule detaljerne
-        btn.mousePressed(() => {
-            toggleGoalDetails(index);
-        });
-        buttonContainer.child(btn);
-    });
+  // For hvert topmål oprettes en knap
+  topGoals.forEach(({ item, index }) => {
+      let btn = createButton(item.title);
+      btn.addClass("top-goal-btn");
+      btn.attribute("data-goal-index", index);
+      btn.mousePressed(() => {
+          toggleGoalDetails(index);
+      });
+      buttonContainer.child(btn);
+  });
 
-    // Opret en container, der skal vise detaljerne – under knapperne
-    let detailsContainer = select("#top-goals-details");
-    if (!detailsContainer) {
-        detailsContainer = createDiv();
-        detailsContainer.id("top-goals-details");
-        detailsContainer.addClass("top-goals-details");
-        container.child(detailsContainer);
-    } else {
-        detailsContainer.html("");
-        detailsContainer.elt.removeAttribute("data-goal-index");
-        detailsContainer.removeClass("open");
-    }
+  // Opret en container, der skal vise detaljerne – under knapperne
+  let detailsContainer = select("#top-goals-details");
+  if (!detailsContainer) {
+      detailsContainer = createDiv();
+      detailsContainer.id("top-goals-details");
+      detailsContainer.addClass("top-goals-details");
+      container.child(detailsContainer);
+  } else {
+      detailsContainer.html("");
+      detailsContainer.elt.removeAttribute("data-goal-index");
+      detailsContainer.removeClass("open");
+  }
 
-    populateCalendarUI();
+   // Add input field and "OK" button for fetching calendar events
+   let calendarInputContainer = createDiv().addClass("calendar-input-container");
+   let calendarLabel = createElement("label", "Fetch calendar events:");
+   calendarLabel.attribute("for", "calendar-url-input");
+   let calendarInput = createInput("");
+   calendarInput.attribute("id", "calendar-url-input");
+   calendarInput.attribute("placeholder", "Indsæt iCal URL her...");
+   let okButton = createButton("OK");
+   okButton.mousePressed(() => {
+       const calendarUrl = calendarInput.value();
+       if (calendarUrl) {
+           loadAndDisplayEvents(calendarUrl);
+       }
+   });
+   calendarInputContainer.child(calendarLabel);
+   calendarInputContainer.child(calendarInput);
+   calendarInputContainer.child(okButton);
+   container.child(calendarInputContainer);
 }
 
 function toggleGoalDetails(goalIndex) {
@@ -636,7 +708,7 @@ function toggleGoalDetails(goalIndex) {
     let container = select("#calendar-container");
     container.html("");
 
-    // Firebase-kompatibel initialisering
+    // Ensure calendar data is initialized
     if (!currentWeekData.calendar || !Array.isArray(currentWeekData.calendar)) {
         currentWeekData.calendar = Array.from({ length: 7 }, () => ({ tasks: [] }));
     }
@@ -652,25 +724,22 @@ function toggleGoalDetails(goalIndex) {
             .attribute("id", `calendar-day-${dayIndex}`)
             .attribute("placeholder", `Indtast opgaver for ${dateString}`);
 
-        // Sikret tilgang til opgaverne
-        const existingTasks = (currentWeekData.calendar[dayIndex] && currentWeekData.calendar[dayIndex].tasks)
-            ? currentWeekData.calendar[dayIndex].tasks
-            : [];
-
+        // Populate the textarea with existing tasks
+        const existingTasks = currentWeekData.calendar[dayIndex]?.tasks || [];
         dayTextArea.html(existingTasks.map(task => task.title).join('\n'));
 
         dayTextArea.elt.style.overflow = "hidden";
         dayTextArea.elt.style.resize = "none";
 
-        dayTextArea.elt.addEventListener("input", function() {
+        dayTextArea.elt.addEventListener("input", function () {
             autoResize(this);
             hasChanged = true;
         });
 
-        dayTextArea.elt.addEventListener("focusout", function() {
+        dayTextArea.elt.addEventListener("focusout", function () {
             const taskTitles = dayTextArea.value().split('\n').map(title => title.trim()).filter(title => title !== '');
             const parsedTasks = taskTitles.map(title => ({ title, completed: false, subtasks: [] }));
-            currentWeekData.calendar[dayIndex] = { tasks: parsedTasks }; // Objekt med tasks-egenskab
+            currentWeekData.calendar[dayIndex] = { tasks: parsedTasks };
             if (hasChanged) {
                 setWeek();
                 hasChanged = false;
@@ -683,8 +752,7 @@ function toggleGoalDetails(goalIndex) {
         dayContainer.child(dayTextArea);
         container.child(dayContainer);
     }
-}    
-  
+}  
   function buildTaskList(tasks) {
     let ul = createElement("ul");
     tasks.forEach(task => {

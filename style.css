@@ -94,6 +94,8 @@ body::-webkit-scrollbar {
     background-color: rgba(0, 0, 0, 0);
     color: whitesmoke;
 }
+.calendar-input-container{
+}
 .focus-item .material-icons.delete-icon {
     position:absolute;
     transform:scale(80%);
