@@ -367,3 +367,23 @@ textarea:focus::before {
   display: none; /* Kan senere toggles synlig/forskyldt via JavaScript */
 }
 
+.calendar-task{
+  display:grid;
+  grid-template-columns: 12fr 1fr 1fr;
+  place-items: center;
+  gap:1rem;
+}
+
+.tasks-container{
+  width:60%;
+  margin-bottom: 1rem;
+}
+
+.day-container h3 {
+  position: sticky;
+  top: 0;
+  background: black; /* Match the background color of the page */
+  z-index: 10;
+  padding: 0 0 2rem 0;
+  border-bottom: 1px solid lightgray; /* Optional: Add a subtle border for better visibility */
+}

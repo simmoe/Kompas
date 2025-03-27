@@ -710,7 +710,92 @@ function toggleGoalDetails(goalIndex) {
     });
   }
       
-  function populateCalendarUI() {
+function addCalendarTask(container, task, dayIndex) {
+    // Create the task container
+    const taskDiv = createDiv().addClass('calendar-task');
+    taskDiv.attribute('draggable', 'true'); // Enable dragging
+
+    // Store the index of the dragged task
+    taskDiv.elt.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', currentWeekData.calendar[dayIndex].tasks.indexOf(task));
+    });
+
+    // Handle dragover to allow dropping
+    taskDiv.elt.addEventListener('dragover', (e) => {
+        e.preventDefault(); // Necessary to allow dropping
+    });
+
+    // Handle drop to reorder tasks
+    taskDiv.elt.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+        const targetIndex = currentWeekData.calendar[dayIndex].tasks.indexOf(task);
+
+        // Reorder tasks in the data structure
+        const [draggedTask] = currentWeekData.calendar[dayIndex].tasks.splice(draggedIndex, 1);
+        currentWeekData.calendar[dayIndex].tasks.splice(targetIndex, 0, draggedTask);
+
+        // Clear and re-render only the relevant tasks-container
+        container.html('');
+        currentWeekData.calendar[dayIndex].tasks.forEach((task) => {
+            addCalendarTask(container, task, dayIndex);
+        });
+
+        // Focus on the active tasks-container
+        container.elt.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        hasChanged = true;
+        triggerFirestoreUpdate();
+    });
+
+    // Create the checkbox
+    const checkbox = createElement('input');
+    checkbox.attribute('type', 'checkbox');
+    checkbox.elt.checked = task.completed;
+    checkbox.addClass('calendar-checkbox');
+    checkbox.changed(() => {
+        task.completed = checkbox.elt.checked; // Update the task's completed state
+        hasChanged = true;
+        triggerFirestoreUpdate(); // Save the updated state to Firestore
+        showInfo(checkbox.elt.checked ? "Opgave løst" : "Opgave på to-do listen");
+    });
+
+    // Create the title input
+    const titleInput = createInput(task.title || '');
+    titleInput.addClass('calendar-title');
+    titleInput.attribute('placeholder', 'Ny opgave');
+    titleInput.input(() => {
+        task.title = titleInput.value();
+        hasChanged = true;
+    });
+    titleInput.elt.addEventListener('focusout', () => {
+        triggerFirestoreUpdate();
+    });
+
+    // Create the delete icon
+    const deleteIcon = createSpan('delete');
+    deleteIcon.addClass('material-icons calendar-delete-icon');
+    deleteIcon.mousePressed(() => {
+        const taskIndex = currentWeekData.calendar[dayIndex].tasks.indexOf(task);
+        if (taskIndex > -1) {
+            currentWeekData.calendar[dayIndex].tasks.splice(taskIndex, 1);
+            taskDiv.remove();
+            hasChanged = true;
+            triggerFirestoreUpdate();
+            showInfo("Opgave slettet");
+        }
+    });
+
+    // Append elements to the task container
+    taskDiv.child(titleInput);
+    taskDiv.child(checkbox);
+    taskDiv.child(deleteIcon);
+
+    // Append the task container to the provided container
+    container.child(taskDiv);
+}
+
+function populateCalendarUI() {
     let container = select("#calendar-container");
     container.html("");
 
@@ -723,40 +808,31 @@ function toggleGoalDetails(goalIndex) {
         let dayContainer = createDiv().addClass("day-container");
 
         let dateString = getDateFromWeekNumber(currentWeekNumber, dayIndex);
-
         dayContainer.child(createElement("h3", dateString));
 
-        let dayTextArea = createElement("textarea")
-            .attribute("id", `calendar-day-${dayIndex}`)
-            .attribute("placeholder", `Indtast opgaver for ${dateString}`);
-
-        // Populate the textarea with existing tasks
+        // Create a container for tasks
+        const tasksContainer = createDiv().addClass('tasks-container');
         const existingTasks = currentWeekData.calendar[dayIndex]?.tasks || [];
-        dayTextArea.html(existingTasks.map(task => task.title).join('\n'));
+        existingTasks.forEach(task => {
+            addCalendarTask(tasksContainer, task, dayIndex);
+        });
 
-        dayTextArea.elt.style.overflow = "hidden";
-        dayTextArea.elt.style.resize = "none";
-
-        // Auto-resize og data-binding ved input
-        setupAutoResize(dayTextArea.elt);
-        dayTextArea.elt.addEventListener("input", function () {
+        // Add a button to create new tasks
+        const addTaskButton = createButton('Tilføj linje');
+        addTaskButton.addClass('add-task-button');
+        addTaskButton.mousePressed(() => {
+            const newTask = { title: '', completed: false };
+            currentWeekData.calendar[dayIndex].tasks.push(newTask);
+            addCalendarTask(tasksContainer, newTask, dayIndex);
             hasChanged = true;
         });
 
-        dayTextArea.elt.addEventListener("focusout", function () {
-            const taskTitles = dayTextArea.value().split('\n').map(title => title.trim()).filter(title => title !== '');
-            const parsedTasks = taskTitles.map(title => ({ title, completed: false, subtasks: [] }));
-            currentWeekData.calendar[dayIndex] = { tasks: parsedTasks };
-            console.log('Calling triggerFirestoreUpdate from focusout event in populateCalendarUI');
-            triggerFirestoreUpdate(); // Replaces setWeek()
-            showInfo("Ændringer gemt");
-            console.log("Current day tasks data:", currentWeekData.calendar[dayIndex]);
-        });
-
-        dayContainer.child(dayTextArea);
+        dayContainer.child(tasksContainer);
+        dayContainer.child(addTaskButton);
         container.child(dayContainer);
     }
-}  
+}
+  
   function buildTaskList(tasks) {
     let ul = createElement("ul");
     tasks.forEach(task => {
