@@ -29,6 +29,8 @@ function setup() {
   // Set the current week number dynamically
   currentWeekNumber = getCurrentWeekNumber();
   updateWeekDisplay();
+  initializeMenu()
+  initializeInstructions()
   // evt. kald getWeek() for at hente data for ugen
   getWeek();
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kompasset</title>
+    <title>Mit kompas</title>
     <link rel="icon" type="image/png" href="./assets/compass_icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,10 +22,10 @@
 </head>
 <body>
   <div class="page visible" id="page1" data-topic="overblik" data-title="Overblik">
-    <h1 class="blue">TRIN ET</h1>
-    <h1 class="white">THE BIG PICTURE</h1>
-    <hr>
-    <div class="menu"></div>
+    <div class="pageheaderTop">
+      <h1 class="blue">TRIN ET</h1>
+      <h1 class="white">THE BIG PICTURE</h1>
+    </div>
     <div class="instruction">
       <p>"The future you see is the future you get." – Robert G. Allen</p>
       <p>Reflekter over dine vigtigste målsætninger. Brug et par minutter hver gang til at læse og redigere listen. Forsøg at skabe overordnede titler, uden at de bliver fluffy fordi de skal rumme for meget.</p>
@@ -40,10 +40,11 @@
     </div>
         
       <div class="page" id="page2" data-topic="projekter" data-title="Projekter">
-        <h1 class="blue">TRIN TO</h1>
-        <h1 class="white">PROJEKTLISTEN</h1>
+        <div class="pageheaderTop">
+          <h1 class="blue">TRIN TO</h1>
+          <h1 class="white">PROJEKTLISTEN</h1>
+        </div>
         <hr>
-        <div class="menu"></div>
         <div class="instruction">
       <p>"Get everything into IN" - David Allen</p>
       <p>Opdel hvert af dine mål i delopgaver, så de bliver lettere at overskue og planlægge. Brug 5-10 minutter til løbende justering.</p>
@@ -52,11 +53,12 @@
       <div id="project-list"></div>
     </div>
         
-    <div class="page" id="page3" data-topic="læring" data-title="Refleksion">      
-      <h1 class="blue">TRIN TRE</h1>
-      <h1 class="white">REFKLEKSION </h1>
+    <div class="page" id="page3" data-topic="læring" data-title="Refleksion">  
+      <div class="pageheaderTop">    
+        <h1 class="blue">TRIN TRE</h1>
+        <h1 class="white">REFKLEKSION </h1>
+      </div>
       <hr>
-      <div class="menu"></div>
       <div class="instruction">
         <p>"Learn from your failure and it’s not failure. Do it again and it is." – Live Your Legend</p>
         <p>"Get over your losses instead of storing them in the pain body." – Falcon Ener Kise</p>
@@ -67,10 +69,11 @@
     </div>
     
     <div class="page" id="page4" data-topic="forpligtelse" data-title="Kalender">
-      <h1 class="blue">TRIN FIRE</h1>
-      <h1 class="white">FORPLIGT DIG TIL DINE PRIMÆRE MÅLSÆTNINGER LIGE NU</h1>
-      <hr>
-      <div class="menu"></div>
+      <div class="pageheaderTop">
+        <h1 class="blue">TRIN FIRE</h1>
+        <h1 class="white">FORPLIGT DIG TIL DINE PRIMÆRE MÅLSÆTNINGER LIGE NU</h1>
+      </div>
+        <hr>
       <div class="instruction">
         <p>"Focus is the key to the world." – William Dinsmore III</p>
         <p>Vælg 3-6 topmål for den kommende periode, der afspejler dine overordnede fokusområder – inklusiv vigtige begivenheder, hvis nødvendigt – og planlæg kerneopgaverne. Tid: 2-5 minutter.</p>
@@ -82,8 +85,10 @@
     </div>
     
     <div class="page" id="page5" data-topic="planlægning" data-title="Kig fremad">
-      <h1 class="blue">TRIN FEM</h1>
-      <h1 class="white">PLANLÆG FORUD</h1>
+      <div class="pageheaderTop">
+        <h1 class="blue">TRIN FEM</h1>
+        <h1 class="white">PLANLÆG FORUD</h1>
+      </div>
       <hr>
       <div class="menu"></div>
       <div class="instruction">
@@ -93,22 +98,26 @@
       <div id="plan-forud-container"></div>
     </div>
     
-    <!-- Footeren, der placeres fast nederst på siden -->
-    <div class="footer-fixed">
-      <div class="footer-nav left">
-        <span id="prev-page" class="material-icons">arrow_back</span>
-      </div>
-      <div class="footer-nav center">
-        <div class="weekly-settings">
-          <span id="prev-week" class="material-icons">arrow_back</span>
-          <h1 id="current-week">Uge 1</h1>
-          <span id="next-week" class="material-icons">arrow_forward</span>
+    <!-- Footer container wrapping footer-fixed and menu-box -->
+    <div class="footer-container">
+      <div class="footer-fixed">
+        <div class="footer-nav left">
+          <span id="prev-page" class="material-icons">arrow_back</span>
+        </div>
+        <div class="footer-nav center">
+          <div class="weekly-settings">
+            <span id="prev-week" class="material-icons">arrow_back</span>
+            <h1 id="current-week">Uge 1</h1>
+            <span id="next-week" class="material-icons">arrow_forward</span>
+          </div>
+        </div>
+        <div class="footer-nav right">
+          <span id="next-page" class="material-icons">arrow_forward</span>
         </div>
       </div>
-      <div class="footer-nav right">
-        <span id="next-page" class="material-icons">arrow_forward</span>
-      </div>
-  </div>
+      <div id="menu-box" class="menu-box"></div>
+    </div>
+    
     <!-- Infoboksen placeres her, fx nederst i body -->
     <div id="info-box" class="info-box"></div>
 

@@ -1,4 +1,3 @@
-
 *{
     margin:0;
     padding:0;
@@ -19,30 +18,25 @@ body {
 body::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
-
-.menu-container{
-  display:grid;
-  grid-auto-flow: column;
-  color:whitesmoke;
-
-}
 .page{
-    position: fixed;
-    top: 0;
-    left: -100vw;
-    width: 100vw;
-    height: 90vh;
-    display: grid;
-    gap: 1rem;
-    padding: 3rem;
-    transition: 0.3s 0.3s all ease-in-out;
-    background: black;
-    color: white;
-    align-content: start;
+  position: fixed;
+  top: 0;
+  background: black;
+  left: -100vw;
+  width: 100vw;
+  height: 90vh;
+  display: grid;
+  gap: 1rem;
+  transition: 0.3s 0.3s all ease-in-out;
+  color: white;
+  align-content: start;
+  padding:3rem 3rem 0 3rem;
 }
+
 .focus-items{
     display:grid;
     grid-template-columns: repeat(auto-fill, minmax(400px, 1fr) ) ;
+    grid-template-rows: auto;
     gap:1rem;
     overflow-y: scroll;
 }
@@ -74,14 +68,13 @@ body::-webkit-scrollbar {
 }
 
 .focus-item {
-    background: rgba(255,255,255,0.1);
-    min-height:130px;
-    padding: 1rem;
-    border-radius: 8px;
-    display: grid;
-    gap: 0.5rem;
-    border:1px solid lightblue;
-
+  background: rgba(255,255,255,0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  display: grid;
+  gap: 0.5rem;
+  border: 1px solid lightblue;
+  height: auto; /* Allow the container to resize dynamically */
 }
 
 .page input[type="text"] {
@@ -142,7 +135,7 @@ h1 {
 h1.blue{
   color: #0B3D91; /* Mørkeblå farve */
   margin-bottom: 0;
-  line-height: 2.2rem;
+  line-height: 3.2rem;
 }
 
 h1.white{
@@ -151,7 +144,7 @@ h1.white{
 }
 
 .footer-fixed h1{
-font-size:3rem;
+  font-size:3rem;
   text-align: center;
   margin-bottom:4px;
 }
@@ -160,51 +153,13 @@ p{
   margin-bottom:5px;
 }
 
-
-
-.footer-fixed {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 10vh;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    background: #00000e;
-    color: white;
-    padding: 0 1rem;
-    z-index: 100;
-  }
-
-  .weekly-settings {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    place-items: center;
-    gap: 1rem;
-  }
-  
-  .footer-nav {
-    display: grid;
-    place-items: center;
-  }
-
-  #next-page, #prev-page {
-    cursor: pointer;;
-  }
-    
-  .settings-menu {
-    margin-top: 1rem;
-    display: none; /* Kan senere toggles synlig/forskyldt via JavaScript */
-  }
-
   .instruction {
     display: grid; /* Kan senere toggles synlig/forskyldt via JavaScript */
     grid-template-columns: 1fr 1fr;
     gap:4rem;
   }
 
-  .info-box {
+  .info-box, #menu-box {
     position: fixed;
     bottom: -12vh; /* Start uden for skærmen (under footeren) */
     left: 0;
@@ -213,15 +168,39 @@ p{
     background: rgba(0, 0, 0, 0.8);
     color: white;
     display: grid;
+    grid-auto-flow: column;
     place-items: center;
     transform: translateY(0);
     transition: transform 0.3s ease;
     pointer-events: none;
+    z-index: 100;
   }
   
-  .info-box.visible {
-    transform: translateY(-24vh); /* Flyt infoboksen op, så den bliver synlig over footeren */
+  .info-box.visible, .menu-box.visible {
+    transform: translateY(-20vh); /* Flyt infoboksen op, så den bliver synlig over footeren */
   }
+
+  /* Show #menu-box when .footer-fixed is hovered */
+.footer-fixed:hover + #menu-box {
+  transform: translateY(-20vh); /* Same as the visible state */
+  pointer-events: auto; /* Allow interaction */
+}
+
+/* Show #menu-box when .footer-container is hovered */
+.footer-container:hover #menu-box {
+    transform: translateY(-20vh); /* Same as the visible state */
+    pointer-events: auto; /* Allow interaction */
+}
+
+.menu-item {
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color:blue;
+}
+.menu-item:hover {
+  color: lightblue;
+}
 
   .top-goals-buttons {
     display: flex;
@@ -350,6 +329,41 @@ textarea::before {
 textarea:focus::before {
     display: none;
 }
-  
 
+/* Styling for footer */
+.footer-fixed {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 10vh;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  background: #00000e;
+  color: white;
+  padding: 0 1rem;
+  z-index: 1000;
+}
+
+.weekly-settings {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  place-items: center;
+  gap: 1rem;
+}
+
+.footer-nav {
+  display: grid;
+  place-items: center;
+}
+
+#next-page, #prev-page {
+  cursor: pointer;;
+}
+  
+.settings-menu {
+  margin-top: 1rem;
+  display: none; /* Kan senere toggles synlig/forskyldt via JavaScript */
+}
 

@@ -51,6 +51,14 @@ function showInfo(message) {
     }
   }
 
+  function triggerFirestoreUpdate() {
+    if (!isChangingWeek && hasChanged) {
+        setWeek();
+        hasChanged = false; // Reset the flag after the update
+        console.log("Firestore updated successfully.");
+    }
+}
+
   function addFocusItem() {
     let container = select('#focus-items');
     let newIndex = container.elt.childElementCount;
@@ -97,8 +105,8 @@ function showInfo(message) {
         if (!isChangingWeek && hasChanged) {
             updateFocusItemModel(newFocusDiv);
             initializeProjects();
-            console.log('Calling setWeek from focusout event in addFocusItem');
-            setWeek();
+            console.log('Calling triggerFirestoreUpdate from focusout event in addFocusItem');
+            triggerFirestoreUpdate(); // Replaces setWeek()
             showInfo("Fokusområdet er gemt");
         }
     });
@@ -129,8 +137,8 @@ function showInfo(message) {
         populateProjectsUI();
       }
       hasChanged = true;
-      console.log('Calling setWeek from change event in addFocusItem');
-      setWeek();
+      console.log('Calling triggerFirestoreUpdate from change event in addFocusItem');
+      triggerFirestoreUpdate(); // Replaces setWeek()
       showInfo("Fokusområdet er gemt");
       console.log("Checkbox ændret for index:", newIndex, " - Model opdateret.");
     });
@@ -156,8 +164,8 @@ function showInfo(message) {
       });
       
       hasChanged = true;
-      console.log('Calling setWeek from delete event in addFocusItem');
-      setWeek();
+      console.log('Calling triggerFirestoreUpdate from delete event in addFocusItem');
+      triggerFirestoreUpdate(); // Replaces setWeek()
     });
     
     newFocusDiv.child(deleteSpan);
@@ -172,8 +180,8 @@ function showInfo(message) {
         if (!isChangingWeek && hasChanged) {
             updateFocusItemModel(newFocusDiv);
             initializeProjects();
-            console.log('Calling setWeek from focusout event in addFocusItem');
-            setWeek();
+            console.log('Calling triggerFirestoreUpdate from focusout event in addFocusItem');
+            triggerFirestoreUpdate(); // Replaces setWeek()
             showInfo("Fokusområdet er gemt");
         }
       });
@@ -262,8 +270,8 @@ function showInfo(message) {
     });
     taskTitleInput.elt.addEventListener('focusout', function() {
         if (taskTitleInput.value().trim() !== '') {
-            setWeek(currentWeekNumber);
-            hasChanged = false;
+            console.log('Calling triggerFirestoreUpdate from focusout event in createTaskElement');
+            triggerFirestoreUpdate(); // Replaces setWeek()
             showInfo("Opgavelisten er gemt");
             console.log("Current task data:", task);
         }
@@ -281,8 +289,8 @@ function showInfo(message) {
         hasChanged = true;
     });
     taskDescriptionTextArea.elt.addEventListener('focusout', function() {
-        setWeek(currentWeekNumber);
-        hasChanged = false;
+        console.log('Calling triggerFirestoreUpdate from focusout event in createTaskElement');
+        triggerFirestoreUpdate(); // Replaces setWeek()
         showInfo("Opgavelisten er gemt");
         console.log("Current task data:", task);
     });
@@ -292,7 +300,8 @@ function showInfo(message) {
         taskDiv.remove();
         currentWeekData.projects[projectIndex].tasks = currentWeekData.projects[projectIndex].tasks.filter(t => t !== task);
         hasChanged = true;
-        setWeek(currentWeekNumber);
+        console.log('Calling triggerFirestoreUpdate from delete event in createTaskElement');
+        triggerFirestoreUpdate(); // Replaces setWeek()
         showInfo("Opgavelisten er gemt");
     });
 
@@ -369,14 +378,11 @@ function populateStolthedUI() {
     // Hvis der allerede findes gemte data, indsæt dem
     if (currentWeekData.stolthed) {
       stolthedTextArea.html(currentWeekData.stolthed);
-      autoResizeTextarea(stolthedTextArea.elt);
-
     }
     container.child(stolthedTextArea);
   
     // Auto-resizing
-    stolthedTextArea.elt.style.overflow = "hidden";
-    stolthedTextArea.elt.style.resize = "none";
+    setupAutoResize(stolthedTextArea.elt);
     stolthedTextArea.elt.addEventListener("input", function() {
       this.style.height = "auto";
       this.style.height = this.scrollHeight + "px";
@@ -410,78 +416,77 @@ function autoResize(textarea) {
     textarea.style.height = textarea.scrollHeight + "px";
 }
   
-  function populateLaeringOgTabUI() {
-    // Hent eller opret containeren til side 4 (TRIN FIRE)
-    let container = select("#laering-container");
-    container.html(""); // Ryd containeren
-  
-    // Definer de tre sektioner med deres overskrifter, nøgler og placeholders
-    const sections = [
-      {
-        title: "Lærepunkter og tab",
-        key: "laeringOgTab",
-        placeholder: "Reflekter over hvad du kan lære fra sidste periode – både succeser og fejl..."
-      },
-      {
-        title: "Taknemmelighed",
-        key: "taknemmelighed",
-        placeholder: "Skriv mindst 3 ting - både store og små - fra forrige periode, som du er stolt af. Tid: 2-5 minutter."
-      },
-      {
-        title: "Kilder til inspiration",
-        key: "inspiration",
-        placeholder: "Skriv hvilke kilder du har fået inspiration fra, f.eks. bøger, film, andet..."
-      },
-      {
-        title: "Mennesker og relationer",
-        key: "mennesker",
-        placeholder: "Skriv navne ned på mennesker du har haft glæde af i denne periode, måske også menesker du gerne ville møde fremover"
-      }
-    ];
-  
-    sections.forEach(sec => {
-      // Opret overskrift
-      let secHeader = createElement("h2", sec.title);
-      container.child(secHeader);
-  
-      // Opret textarea
-      let secTextArea = createElement("textarea");
-      secTextArea.attribute("id", sec.key + "-textarea");
-      secTextArea.attribute("placeholder", sec.placeholder);
-      // Hvis der allerede findes gemte data i currentWeekData, indsæt dem
-      if (currentWeekData[sec.key]) {
-        secTextArea.html(currentWeekData[sec.key]);
-      }
-      container.child(secTextArea);
-  
-      // Styling via inline CSS
-      secTextArea.elt.style.overflow = "hidden";
-      secTextArea.elt.style.resize = "none";
-  
-      // Auto-resize og data-binding ved input
-      secTextArea.elt.addEventListener("input", function() {
-        autoResize(this);
-        // Opdater den lokale model med den aktuelle værdi
-        currentWeekData[sec.key] = secTextArea.value();
-        hasChanged = true;
-      });
-      // Auto-resize ved fokus
-      secTextArea.elt.addEventListener("focus", function() {
-        autoResize(this);
-      });
-      // Ved focusout opdateres firebase, hvis der er ændringer
-      secTextArea.elt.addEventListener("focusout", function() {
-        currentWeekData[sec.key] = secTextArea.value();
-        if (hasChanged) {
-          setWeek();
-          hasChanged = false;
-          showInfo("Ændringer gemt");
-        }
-      });
-      // Initial auto-resize med det samme
-      autoResize(secTextArea.elt);
+function populateLaeringOgTabUI() {
+  // Hent eller opret containeren til side 4 (TRIN FIRE)
+  let container = select("#laering-container");
+  container.html(""); // Ryd containeren
+
+  // Definer de tre sektioner med deres overskrifter, nøgler og placeholders
+  const sections = [
+    {
+      title: "Lærepunkter og tab",
+      key: "laeringOgTab",
+      placeholder: "Reflekter over hvad du kan lære fra sidste periode – både succeser og fejl..."
+    },
+    {
+      title: "Taknemmelighed",
+      key: "taknemmelighed",
+      placeholder: "Skriv mindst 3 ting - både store og små - fra forrige periode, som du er stolt af. Tid: 2-5 minutter."
+    },
+    {
+      title: "Kilder til inspiration",
+      key: "inspiration",
+      placeholder: "Skriv hvilke kilder du har fået inspiration fra, f.eks. bøger, film, andet..."
+    },
+    {
+      title: "Mennesker og relationer",
+      key: "mennesker",
+      placeholder: "Skriv navne ned på mennesker du har haft glæde af i denne periode, måske også menesker du gerne ville møde fremover"
+    }
+  ];
+
+  sections.forEach(sec => {
+    // Opret overskrift
+    let secHeader = createElement("h2", sec.title);
+    container.child(secHeader);
+
+    // Opret textarea
+    let secTextArea = createElement("textarea");
+    secTextArea.attribute("id", sec.key + "-textarea");
+    secTextArea.attribute("placeholder", sec.placeholder);
+    // Hvis der allerede findes gemte data i currentWeekData, indsæt dem
+    if (currentWeekData[sec.key]) {
+      secTextArea.html(currentWeekData[sec.key]);
+    }
+    container.child(secTextArea);
+
+    // Styling via inline CSS
+    secTextArea.elt.style.overflow = "hidden";
+    secTextArea.elt.style.resize = "none";
+
+    // Auto-resize og data-binding ved input
+    setupAutoResize(secTextArea.elt);
+    secTextArea.elt.addEventListener("input", function() {
+      autoResize(this);
+      // Opdater den lokale model med den aktuelle værdi
+      currentWeekData[sec.key] = secTextArea.value();
+      hasChanged = true;
     });
-  }
+    // Auto-resize ved fokus
+    secTextArea.elt.addEventListener("focus", function() {
+      autoResize(this);
+    });
+    // Ved focusout opdateres firebase, hvis der er ændringer
+    secTextArea.elt.addEventListener("focusout", function() {
+      currentWeekData[sec.key] = secTextArea.value();
+      if (hasChanged) {
+        setWeek();
+        hasChanged = false;
+        showInfo("Ændringer gemt");
+      }
+    });
+  });
+}
   
 
   function populateForberedUI() {
@@ -504,6 +509,7 @@ function autoResize(textarea) {
     forberedTextArea.elt.style.resize = "none";
   
     // Tilføj event listeners for auto-resizing og data-binding
+    setupAutoResize(forberedTextArea.elt);
     forberedTextArea.elt.addEventListener("input", function() {
       autoResize(this);
       // Opdater den lokale model med den aktuelle værdi
@@ -522,8 +528,6 @@ function autoResize(textarea) {
         showInfo("Ændringer gemt");
       }
     });
-    // Opdater højden med det samme, så feltet matcher tekstens omfang
-    autoResize(forberedTextArea.elt);
   }
   
 
@@ -643,7 +647,8 @@ function populateTopGoalsUI() {
       detailsContainer.removeClass("open");
   }
 
-   // Add input field and "OK" button for fetching calendar events
+  
+  /* // Add input field and "OK" button for fetching calendar events
    let calendarInputContainer = createDiv().addClass("calendar-input-container");
    let calendarLabel = createElement("label", "Fetch calendar events:");
    calendarLabel.attribute("for", "calendar-url-input");
@@ -660,7 +665,8 @@ function populateTopGoalsUI() {
    calendarInputContainer.child(calendarLabel);
    calendarInputContainer.child(calendarInput);
    calendarInputContainer.child(okButton);
-   container.child(calendarInputContainer);
+   container.child(calendarInputContainer); */
+   
 }
 
 function toggleGoalDetails(goalIndex) {
@@ -731,8 +737,9 @@ function toggleGoalDetails(goalIndex) {
         dayTextArea.elt.style.overflow = "hidden";
         dayTextArea.elt.style.resize = "none";
 
+        // Auto-resize og data-binding ved input
+        setupAutoResize(dayTextArea.elt);
         dayTextArea.elt.addEventListener("input", function () {
-            autoResize(this);
             hasChanged = true;
         });
 
@@ -740,15 +747,12 @@ function toggleGoalDetails(goalIndex) {
             const taskTitles = dayTextArea.value().split('\n').map(title => title.trim()).filter(title => title !== '');
             const parsedTasks = taskTitles.map(title => ({ title, completed: false, subtasks: [] }));
             currentWeekData.calendar[dayIndex] = { tasks: parsedTasks };
-            if (hasChanged) {
-                setWeek();
-                hasChanged = false;
-                showInfo("Ændringer gemt");
-                console.log("Current day tasks data:", currentWeekData.calendar[dayIndex]);
-            }
+            console.log('Calling triggerFirestoreUpdate from focusout event in populateCalendarUI');
+            triggerFirestoreUpdate(); // Replaces setWeek()
+            showInfo("Ændringer gemt");
+            console.log("Current day tasks data:", currentWeekData.calendar[dayIndex]);
         });
 
-        autoResize(dayTextArea.elt);
         dayContainer.child(dayTextArea);
         container.child(dayContainer);
     }
@@ -787,24 +791,17 @@ function toggleGoalDetails(goalIndex) {
     planTextArea.elt.classList.add("autosize-textarea");
     
     // Tilføj event listeners til auto-resizing og data-binding
+    setupAutoResize(planTextArea.elt);
     planTextArea.elt.addEventListener("input", function() {
-      autoResize(this);
       currentWeekData.planForud = planTextArea.value();
       hasChanged = true;
     });
-    planTextArea.elt.addEventListener("focus", function() {
-      autoResize(this);
-    });
     planTextArea.elt.addEventListener("focusout", function() {
       currentWeekData.planForud = planTextArea.value();
-      if (hasChanged) {
-        setWeek();
-        hasChanged = false;
-        showInfo("Ændringer gemt");
-      }
+      console.log('Calling triggerFirestoreUpdate from focusout event in populatePlanForudUI');
+      triggerFirestoreUpdate(); // Replaces setWeek()
+      showInfo("Ændringer gemt");
     });
-    // Opdater højden ved initialisering
-    autoResize(planTextArea.elt);
   }
 
   function initializeInstructions() {  
@@ -842,5 +839,25 @@ function toggleGoalDetails(goalIndex) {
     });
   }
 
-// Kald initializeInstructions når DOM'en er indlæst
-document.addEventListener('DOMContentLoaded', initializeInstructions);
+function initializeMenu() {
+    // Select all pages
+    const pages = selectAll('.page');
+    const menuContainer = select('#menu-box')
+
+    // Populate each menu container
+        pages.forEach(page => {
+            const pageTitle = page.elt.getAttribute('data-title');
+            const pageId = page.elt.id.match(/\d+$/)[0]; // Extract the number from the ID
+
+            // Create menu item
+            const menuItem = createDiv(pageTitle);
+            menuItem.addClass('menu-item');
+
+            // Add click event to switch pages
+            menuItem.mousePressed(() => shiftPage(pageId));
+
+            // Append menu item to the menu container
+            menuItem.parent(menuContainer);
+        });
+}
+
