@@ -328,7 +328,7 @@ function populateProjectsUI() {
         projectContainer.elt.setAttribute("data-project-index", projectIndex);
 
         // Titel på projektet
-        projectContainer.child(createElement("h2", project.title || "Ukendt Målsætning"));
+        projectContainer.child(createElement("h3", project.title || "Ukendt Målsætning"));
 
         // Opgaveliste
         let taskListContainer = createDiv().addClass('task-list-container');
