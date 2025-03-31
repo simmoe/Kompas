@@ -87,8 +87,6 @@ body::-webkit-scrollbar {
     background-color: rgba(0, 0, 0, 0);
     color: whitesmoke;
 }
-.calendar-input-container{
-}
 .focus-item .material-icons.delete-icon {
     position:absolute;
     transform:scale(80%);
@@ -131,13 +129,13 @@ h1 {
   margin-bottom: 0;
 }
 
-h1.blue{
+.blue{
   color: #0B3D91; /* Mørkeblå farve */
   margin-bottom: 0;
   line-height: 3.2rem;
 }
 
-h1.white{
+.white{
   color: whitesmoke; 
   margin-bottom: 0;
 }
@@ -152,11 +150,12 @@ p{
   margin-bottom:5px;
 }
 
-  .instruction {
-    display: grid; /* Kan senere toggles synlig/forskyldt via JavaScript */
-    grid-template-columns: 1fr 1fr;
-    gap:4rem;
-  }
+.instruction {
+  display: grid; /* Kan senere toggles synlig/forskyldt via JavaScript */
+  grid-template-columns: 1fr 1fr;
+  gap:4rem;
+  border-bottom: 1px solid whitesmoke;
+}
 
   .info-box, #menu-box {
     position: fixed;
@@ -272,9 +271,12 @@ p{
 }
 
 .arrow-icon {
-  transition: transform 0.6s ease;
+  transition: transform 0.3s ease;
 }
 
+.arrow-icon.open {
+  transform: rotate(180deg); /* Rotate the arrow when open */
+}
 
 .material-icons {
   cursor: pointer;
@@ -385,4 +387,51 @@ textarea:focus::before {
   z-index: 10;
   padding: 0 0 2rem 0;
   border-bottom: 1px solid lightgray; /* Optional: Add a subtle border for better visibility */
+}
+
+.pageheaderTop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.pageheaderTop .instruction-link {
+  align-self: flex-end; /* Align the link to the right */
+  color: #0B3D91; /* Blue color */
+  cursor: pointer;
+  font-size: 1rem; /* Match normal text size */
+  text-decoration: none; /* Remove underline */
+  font-weight: 400; /* Normal text weight */
+  display: flex;
+  align-items: center;
+  gap: 0.3rem; /* Space between text and arrow */
+}
+
+.pageheaderTop .instruction-link:hover {
+  color: lightblue; /* Lighter blue on hover */
+}
+
+.arrow-icon {
+  transition: transform 0.3s ease;
+}
+
+.arrow-icon.open {
+  transform: rotate(180deg); /* Rotate the arrow when open */
+}
+
+.instruction{
+  max-height: 0; /* Adjust as needed */
+  margin-top: 1rem;
+  transition: all 0.6s ease, opacity 0.3s ease;
+  display: grid; /* Show when toggled */
+  grid-template-columns: 1fr 1fr 1fr; /* Show when toggled */
+  overflow: hidden;
+}
+
+.instruction.open {
+  max-height: 500px; /* Adjust as needed */
+  opacity: 1;
+  padding-bottom:1rem;
 }

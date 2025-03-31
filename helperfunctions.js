@@ -646,6 +646,9 @@ function populateTopGoalsUI() {
       detailsContainer.elt.removeAttribute("data-goal-index");
       detailsContainer.removeClass("open");
   }
+  detailsContainer.mousePressed((e) => {
+    console.log(e)
+  });
 
   
   /* // Add input field and "OK" button for fetching calendar events
@@ -880,40 +883,27 @@ function populateCalendarUI() {
     });
   }
 
-  function initializeInstructions() {  
-    const instructions = document.querySelectorAll('.instruction');
-    instructions.forEach(instruction => {
-      // Gem den oprindelige tekst
-      const fullText = instruction.innerHTML;
-      // Sæt en kort tekst som standard
-      instruction.innerHTML = 'Instruks';
-      instruction.style.cursor = 'pointer';
-      instruction.style.color = 'blue'; // Gør teksten klikbar
-      instruction.style.display = 'flex';
-      instruction.style.alignItems = 'center';
-  
-      // Tilføj en pil fra Google Material Icons
-      const arrow = document.createElement('span');
-      arrow.classList.add('material-icons', 'arrow-icon');
-      arrow.innerHTML = 'expand_more';
-      arrow.style.marginLeft = '8px'; // Tilføj lidt afstand mellem tekst og pil
-      instruction.appendChild(arrow);
-  
-      // Tilføj en klik-hændelse for at folde ud og ind
-      instruction.addEventListener('click', function() {
-        if (instruction.innerHTML.startsWith('Instruks')) {
-          instruction.innerHTML = fullText;
-          arrow.innerHTML = 'expand_less'; // Skift pilens retning
-          arrow.style.transform = 'rotate(180deg)'; // Roter pilen
-        } else {
-          instruction.innerHTML = 'Instruks';
-          instruction.appendChild(arrow);
-          arrow.innerHTML = 'expand_more'; // Skift pilens retning
-          arrow.style.transform = 'rotate(0deg)'; // Roter pilen tilbage
-        }
-      });
+  function initializeInstructions() {
+    const instructions = document.querySelectorAll('.instruction-content');
+    instructions.forEach((instruction) => {
+    const link = instruction.previousElementSibling.querySelector('.instruction-link');
+    const arrow = link.querySelector('.arrow-icon');
+        instruction.addEventListener(('click'), () => {
+            // Toggle the clicked instruction
+            const isOpen = instruction.classList.contains('open');
+            instruction.classList.toggle('open', !isOpen);
+            arrow.classList.toggle('open', !isOpen);
+        });
+
+        // Add click event to toggle the instruction content
+        link.addEventListener('click', () => {
+            // Toggle the clicked instruction
+            const isOpen = instruction.classList.contains('open');
+            instruction.classList.toggle('open', !isOpen);
+            arrow.classList.toggle('open', !isOpen);
+        });
     });
-  }
+}
 
 function initializeMenu() {
     // Select all pages
