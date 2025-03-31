@@ -447,7 +447,7 @@ function populateLaeringOgTabUI() {
 
   sections.forEach(sec => {
     // Opret overskrift
-    let secHeader = createElement("h2", sec.title);
+    let secHeader = createElement("h3", sec.title);
     container.child(secHeader);
 
     // Opret textarea
@@ -625,7 +625,7 @@ function populateTopGoalsUI() {
 
   // For hvert topmål oprettes en knap
   topGoals.forEach(({ item, index }) => {
-      let btn = createButton(item.title);
+      let btn = createButton(item.title.substr(0, 14) + "...");
       btn.addClass("top-goal-btn");
       btn.attribute("data-goal-index", index);
       btn.mousePressed(() => {

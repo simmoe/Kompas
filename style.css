@@ -67,6 +67,7 @@ body::-webkit-scrollbar {
     position:relative;
 }
 
+
 .focus-item {
   background: rgba(255,255,255,0.1);
   padding: 1rem;
@@ -100,14 +101,9 @@ body::-webkit-scrollbar {
     display:grid;
     gap:2rem;
     overflow-y: scroll;
+    padding-bottom:50vh;
 }
 
-.project-container{
-    display:grid;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom:1rem;
-}
 
 .task-item{
     display:grid;
@@ -200,6 +196,14 @@ p{
   color: lightblue;
 }
 
+#plan-forud-container{
+  margin-top:2rem;
+}
+
+#top-goals-container p{
+  color:gray;
+}
+
   .top-goals-buttons {
     display: flex;
     flex-wrap: wrap;
@@ -208,7 +212,10 @@ p{
   }
   
   .top-goal-btn {
-    min-width: 200px;
+    max-width: 150px;
+    display:grid;
+    place-items: center;
+    padding:0.2rem 1rem;
     transition: background-color 0.3s ease;
   }
   
@@ -380,7 +387,7 @@ textarea:focus::before {
   margin-bottom: 1rem;
 }
 
-.day-container h3, .project-container h3 {
+.day-container h3, .project-container h3, #laering-container h3{
   position: sticky;
   top: 0;
   background: black; /* Match the background color of the page */
@@ -423,7 +430,6 @@ textarea:focus::before {
 
 .instruction{
   max-height: 0; /* Adjust as needed */
-  margin-top: 1rem;
   transition: all 0.6s ease, opacity 0.3s ease;
   display: grid; /* Show when toggled */
   grid-template-columns: 1fr 1fr 1fr; /* Show when toggled */
@@ -434,4 +440,8 @@ textarea:focus::before {
   max-height: 500px; /* Adjust as needed */
   opacity: 1;
   padding-bottom:1rem;
+}
+
+#add-focus-btn{
+  margin-top:1rem;
 }
