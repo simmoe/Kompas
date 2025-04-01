@@ -111,7 +111,7 @@ function showInfo(message) {
     newFocusDiv.child(checkboxContainer);
 
     // Delete icon
-    let deleteSpan = createSpan('delete').addClass('delete-icon');
+    let deleteSpan = createSpan('delete').addClass('material-icons delete-icon');
     deleteSpan.attribute('id', 'delete-focus-' + newIndex);
     deleteSpan.mousePressed(() => {
         let index = parseInt(newFocusDiv.elt.getAttribute('data-index'), 10);

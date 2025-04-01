@@ -478,16 +478,23 @@ textarea:focus::before {
     margin-left: 0.5rem;
 }
 
-.delete-icon {
-    cursor: pointer;
-    color: red;
-    font-size: 1.2rem;
-}
 
 /* Responsive styling for smaller devices */
 @media (max-width: 768px) {
-    /* Remove instructions */
-    .instruction-content {
+    .page.visible {
+        padding: 1rem;
+        gap: 0.5rem;
+    }
+
+    h1{
+        font-size: 4rem;
+    }
+    h3{
+        font-size: 2rem;
+    }
+
+    /* Remove instructions and menu*/
+    .instruction-content, #menu-box {
         display: none;
     }
 
@@ -500,6 +507,12 @@ textarea:focus::before {
     /* Remove top-goal buttons */
     #top-goals-container, .pageheaderTop .instruction-link {
         display: none;
+    }
+
+    /*full width elements*/
+    .tasks-container{
+        width: 100%;
+
     }
 
     /* Make lists full page width */
