@@ -494,17 +494,29 @@ textarea:focus::before {
         padding:1rem 0;
         margin:0;
     }
+    .focus-items{
+      width:100vw;
+      overflow-x: hidden;
+      grid-template-columns: 1fr;
+    }
     .focus-item {
       background: black;
+      padding: 0.5rem;
       border:none;
       border-top: 1px solid whitesmoke;
-      padding:0;
+      padding:0.5rem;
       padding-top:1rem;
       border-radius:0;
+      height:100%;
     }    
     .focus-item textarea{
       border:none;
     }    
+
+    .focus-item .material-icons.delete-icon {
+      right: 1rem;
+      bottom:.2rem; 
+  }
 
     /* Remove instructions and menu*/
     .instruction-content, #menu-box {
