@@ -62,135 +62,74 @@ function showInfo(message) {
   function addFocusItem() {
     let container = select('#focus-items');
     let newIndex = container.elt.childElementCount;
-    
+
     let newFocusDiv = createDiv();
     newFocusDiv.addClass('focus-item');
     newFocusDiv.elt.setAttribute('data-index', newIndex);
-  
-    // Fokusområde label og input
-    let c = createDiv().addClass('focusTitle')    
-    let labelTitle = createElement('label', 'Målsætning:');
+
+    // Consolidated label and input container
+    let titleContainer = createDiv().addClass('input-container');
+    let labelTitle = createElement('label', 'Målsætning:').addClass('input-container__label');
     labelTitle.attribute('for', 'focus-title-' + newIndex);
-    c.child(labelTitle);
-    
+    titleContainer.child(labelTitle);
+
     let titleInput = createInput('');
     titleInput.attribute('id', 'focus-title-' + newIndex);
     titleInput.attribute('name', `focus[${newIndex}].title`);
     titleInput.attribute('placeholder', 'Ny målsætning');
-    c.child(titleInput)
-    newFocusDiv.child(c);
-    
-    // Motivation label og textarea
-    let d = createDiv().addClass('focusTitle');
-  
-    let labelMotivation = createElement('label', 'Værdi:');
+    titleInput.addClass('input-container__input');
+    titleContainer.child(titleInput);
+    newFocusDiv.child(titleContainer);
+
+    // Motivation container
+    let motivationContainer = createDiv().addClass('textarea-container');
+    let labelMotivation = createElement('label', 'Værdi:').addClass('textarea-container__label');
     labelMotivation.attribute('for', 'focus-motivation-' + newIndex);
-    d.child(labelMotivation);
-    
+    motivationContainer.child(labelMotivation);
+
     let motivationTextArea = createElement('textarea');
     motivationTextArea.attribute('id', 'focus-motivation-' + newIndex);
     motivationTextArea.attribute('name', `focus[${newIndex}].motivation`);
     motivationTextArea.attribute('placeholder', 'Hvad giver det dig at opnå denne målsæting?');
     motivationTextArea.attribute('required', '');
-    d.child(motivationTextArea);
-    newFocusDiv.child(d);
-    
-    // Auto-resize functionality
-    setupAutoResize(motivationTextArea.elt);
-    motivationTextArea.elt.addEventListener("input", function() {
-        updateFocusItemModel(newFocusDiv);
-        hasChanged = true;
-    });
-    motivationTextArea.elt.addEventListener("focusout", function() {
-        if (!isChangingWeek && hasChanged) {
-            updateFocusItemModel(newFocusDiv);
-            initializeProjects();
-            console.log('Calling triggerFirestoreUpdate from focusout event in addFocusItem');
-            triggerFirestoreUpdate(); // Replaces setWeek()
-            showInfo("Fokusområdet er gemt");
-        }
-    });
-    
-    // Checkbox-container med label og checkbox
-    let checkboxDiv = createDiv();
-    checkboxDiv.addClass('checkbox');
-    
-    let labelCheckbox = createElement('label', 'Aktuel:');
+    motivationTextArea.addClass('textarea-container__textarea');
+    motivationContainer.child(motivationTextArea);
+    newFocusDiv.child(motivationContainer);
+
+    // Checkbox container
+    let checkboxContainer = createDiv().addClass('checkbox-container');
+    let labelCheckbox = createElement('label', 'Aktuel:').addClass('checkbox-container__label');
     labelCheckbox.attribute('for', 'focus-main-' + newIndex);
-    checkboxDiv.child(labelCheckbox);
-    
+    checkboxContainer.child(labelCheckbox);
+
     let checkboxInput = createElement('input');
     checkboxInput.elt.setAttribute('type', 'checkbox');
     checkboxInput.attribute('id', 'focus-main-' + newIndex);
     checkboxInput.attribute('name', `focus[${newIndex}].isMain`);
-    checkboxDiv.child(checkboxInput);
-    
-    newFocusDiv.child(checkboxDiv);
-  
-    // Tilføj event listener til checkboxen for at opdatere modellen ved ændring
-    checkboxInput.elt.addEventListener("change", function() {
-      updateFocusItemModel(newFocusDiv);
-      // Efter en ændring i checkboxen opdaterer vi projects-arrayet
-      initializeProjects();
-      // Hvis projektlisten er synlig, kan vi også genopbygge UI'en for den
-      if (select("#page2").hasClass("visible")) {
-        populateProjectsUI();
-      }
-      hasChanged = true;
-      console.log('Calling triggerFirestoreUpdate from change event in addFocusItem');
-      triggerFirestoreUpdate(); // Replaces setWeek()
-      showInfo("Fokusområdet er gemt");
-      console.log("Checkbox ændret for index:", newIndex, " - Model opdateret.");
-    });
-    
-    // Delete ikon med integreret event listener
-    let deleteSpan = createSpan('delete');
-    deleteSpan.addClass('material-icons delete-icon');
+    checkboxInput.addClass('checkbox-container__checkbox');
+    checkboxContainer.child(checkboxInput);
+    newFocusDiv.child(checkboxContainer);
+
+    // Delete icon
+    let deleteSpan = createSpan('delete').addClass('delete-icon');
     deleteSpan.attribute('id', 'delete-focus-' + newIndex);
-    
     deleteSpan.mousePressed(() => {
-      // Brug newFocusDiv, som vi allerede har referencen til
-      let index = parseInt(newFocusDiv.elt.getAttribute('data-index'), 10);
-      newFocusDiv.remove();
-      
-      if (currentWeekData.focus && index !== -1) {
-        currentWeekData.focus.splice(index, 1);
-      }
-      
-      // Opdater data-index for de resterende elementer
-      let remainingItems = selectAll('.focus-item');
-      remainingItems.forEach((item, i) => {
-        item.elt.setAttribute('data-index', i);
-      });
-      
-      hasChanged = true;
-      console.log('Calling triggerFirestoreUpdate from delete event in addFocusItem');
-      triggerFirestoreUpdate(); // Replaces setWeek()
-    });
-    
-    newFocusDiv.child(deleteSpan);
-    
-    // Sæt event listeners på de nye inputfelter, så modellen opdateres ved ændringer
-    let inputs = newFocusDiv.elt.querySelectorAll('input');
-    inputs.forEach(input => {
-      input.addEventListener('input', () => {
-        updateFocusItemModel(newFocusDiv);
-      });
-      input.addEventListener('focusout', () => {
-        if (!isChangingWeek && hasChanged) {
-            updateFocusItemModel(newFocusDiv);
-            initializeProjects();
-            console.log('Calling triggerFirestoreUpdate from focusout event in addFocusItem');
-            triggerFirestoreUpdate(); // Replaces setWeek()
-            showInfo("Fokusområdet er gemt");
+        let index = parseInt(newFocusDiv.elt.getAttribute('data-index'), 10);
+        newFocusDiv.remove();
+        if (currentWeekData.focus && index !== -1) {
+            currentWeekData.focus.splice(index, 1);
         }
-      });
+        let remainingItems = selectAll('.focus-item');
+        remainingItems.forEach((item, i) => {
+            item.elt.setAttribute('data-index', i);
+        });
+        hasChanged = true;
+        triggerFirestoreUpdate();
     });
-    
+    newFocusDiv.child(deleteSpan);
+
     container.child(newFocusDiv);
-  }
-  
-  
+}
 
   function updateFocusItemModel(focusItem) {
     // Find indekset for denne container blandt alle .focus-item elementer

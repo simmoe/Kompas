@@ -445,3 +445,78 @@ textarea:focus::before {
 #add-focus-btn{
   margin-top:1rem;
 }
+
+/* General input container styles */
+.input-container,
+.textarea-container,
+.checkbox-container {
+    margin-bottom: 1rem;
+}
+
+.input-container__label,
+.textarea-container__label,
+.checkbox-container__label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.input-container__input,
+.textarea-container__textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.textarea-container__textarea {
+    resize: none;
+    overflow: hidden;
+}
+
+.checkbox-container__checkbox {
+    margin-left: 0.5rem;
+}
+
+.delete-icon {
+    cursor: pointer;
+    color: red;
+    font-size: 1.2rem;
+}
+
+/* Responsive styling for smaller devices */
+@media (max-width: 768px) {
+    /* Remove instructions */
+    .instruction-content {
+        display: none;
+    }
+
+    /* Make page header/title smaller */
+    .page-header {
+        font-size: 1.5rem;
+        padding: 0.5rem;
+    }
+
+    /* Remove top-goal buttons */
+    #top-goals-container, .pageheaderTop .instruction-link {
+        display: none;
+    }
+
+    /* Make lists full page width */
+    ul, ol {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+    }
+
+    /* Adjust padding for text inside lists */
+    ul li, ol li {
+        padding: 0.5rem;
+    }
+
+    /* Remove padding on horizontal rules */
+    hr {
+        margin: 0;
+        padding: 0;
+    }
+}
