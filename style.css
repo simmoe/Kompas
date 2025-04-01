@@ -387,7 +387,7 @@ textarea:focus::before {
   margin-bottom: 1rem;
 }
 
-.day-container h3, .project-container h3, #laering-container h3{
+ h3{
   position: sticky;
   top: 0;
   background: black; /* Match the background color of the page */
@@ -491,7 +491,20 @@ textarea:focus::before {
     }
     h3{
         font-size: 2rem;
+        padding:1rem 0;
+        margin:0;
     }
+    .focus-item {
+      background: black;
+      border:none;
+      border-top: 1px solid whitesmoke;
+      padding:0;
+      padding-top:1rem;
+      border-radius:0;
+    }    
+    .focus-item textarea{
+      border:none;
+    }    
 
     /* Remove instructions and menu*/
     .instruction-content, #menu-box {
