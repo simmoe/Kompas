@@ -182,3 +182,28 @@ function shiftPage(input) {
   }
   // Tilføj evt. flere tjek for andre sider...
 }
+
+/**
+ * Fetches week data for a specific week number from Firestore.
+ * @param {number} weekNumber - The week number to fetch data for.
+ * @returns {Promise<Object>} - A promise that resolves to the week data object.
+ */
+async function getWeekData(weekNumber) {
+  console.log(`Fetching data for week ${weekNumber}...`);
+  const docPath = `/kompas/user_1/weeks/week_${weekNumber}`;
+  try {
+      const docRef = firebase.firestore().doc(docPath);
+      const docSnap = await docRef.get();
+      if (docSnap.exists) {
+          console.log(`Data for week ${weekNumber} fetched successfully:`, docSnap.data());
+          return docSnap.data();
+      } else {
+          console.warn(`No data found for week ${weekNumber}. Returning an empty object.`);
+          return {}; // Return an empty object if no data exists
+      }
+  } catch (error) {
+      console.error(`Error fetching data for week ${weekNumber}:`, error);
+      throw error; // Re-throw the error for the caller to handle
+  }
+}
+

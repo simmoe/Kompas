@@ -1,3 +1,13 @@
+function triggerFirestoreUpdate() {
+  console.log('Trigger firestore update', isChangingWeek, hasChanged);
+  if (!isChangingWeek && hasChanged) {
+      setWeek();
+      hasChanged = false; // Reset the flag after the update
+      console.log("Firestore updated successfully.");
+  }
+}
+
+
 function showInfo(message) {
     // Forsøg at finde en eksisterende infoboks
     let infoBox = select('#info-box');
@@ -51,13 +61,6 @@ function showInfo(message) {
     }
   }
 
-  function triggerFirestoreUpdate() {
-    if (!isChangingWeek && hasChanged) {
-        setWeek();
-        hasChanged = false; // Reset the flag after the update
-        console.log("Firestore updated successfully.");
-    }
-}
 
   function addFocusItem() {
     let container = select('#focus-items');
@@ -81,6 +84,20 @@ function showInfo(message) {
     titleContainer.child(titleInput);
     newFocusDiv.child(titleContainer);
 
+    // Add event listeners for title input
+    titleInput.elt.addEventListener("input", function() {
+        updateFocusItemModel(newFocusDiv);
+        hasChanged = true;
+    });
+    titleInput.elt.addEventListener("focusout", function() {
+        if (!isChangingWeek && hasChanged) {
+            updateFocusItemModel(newFocusDiv);
+            initializeProjects();
+            triggerFirestoreUpdate();
+            showInfo("Fokusområdet er gemt");
+        }
+    });
+
     // Motivation container
     let motivationContainer = createDiv().addClass('textarea-container');
     let labelMotivation = createElement('label', 'Værdi:').addClass('textarea-container__label');
@@ -96,6 +113,20 @@ function showInfo(message) {
     motivationContainer.child(motivationTextArea);
     newFocusDiv.child(motivationContainer);
 
+    // Add event listeners for motivation textarea
+    motivationTextArea.elt.addEventListener("input", function() {
+        updateFocusItemModel(newFocusDiv);
+        hasChanged = true;
+    });
+    motivationTextArea.elt.addEventListener("focusout", function() {
+        if (!isChangingWeek && hasChanged) {
+            updateFocusItemModel(newFocusDiv);
+            initializeProjects();
+            triggerFirestoreUpdate();
+            showInfo("Fokusområdet er gemt");
+        }
+    });
+
     // Checkbox container
     let checkboxContainer = createDiv().addClass('checkbox-container');
     let labelCheckbox = createElement('label', 'Aktuel:').addClass('checkbox-container__label');
@@ -110,19 +141,39 @@ function showInfo(message) {
     checkboxContainer.child(checkboxInput);
     newFocusDiv.child(checkboxContainer);
 
+    // Add event listeners for checkbox input
+    checkboxInput.elt.addEventListener("change", function() {
+        updateFocusItemModel(newFocusDiv);
+        initializeProjects();
+        if (select("#page2").hasClass("visible")) {
+            populateProjectsUI();
+        }
+        hasChanged = true;
+        triggerFirestoreUpdate();
+        showInfo("Fokusområdet er gemt");
+    });
+
     // Delete icon
     let deleteSpan = createSpan('delete').addClass('material-icons delete-icon');
     deleteSpan.attribute('id', 'delete-focus-' + newIndex);
     deleteSpan.mousePressed(() => {
         let index = parseInt(newFocusDiv.elt.getAttribute('data-index'), 10);
         newFocusDiv.remove();
+
+        // Remove the corresponding focus item and project
         if (currentWeekData.focus && index !== -1) {
             currentWeekData.focus.splice(index, 1);
+            if (currentWeekData.projects && currentWeekData.projects.length > index) {
+                currentWeekData.projects.splice(index, 1);
+            }
         }
+
+        // Update data-index for remaining focus items
         let remainingItems = selectAll('.focus-item');
         remainingItems.forEach((item, i) => {
             item.elt.setAttribute('data-index', i);
         });
+
         hasChanged = true;
         triggerFirestoreUpdate();
     });
@@ -608,7 +659,6 @@ function populateTopGoalsUI() {
    calendarInputContainer.child(calendarInput);
    calendarInputContainer.child(okButton);
    container.child(calendarInputContainer); */
-   
 }
 
 function toggleGoalDetails(goalIndex) {
@@ -864,5 +914,35 @@ function initializeMenu() {
             // Append menu item to the menu container
             menuItem.parent(menuContainer);
         });
+}
+
+/**
+ * Copies focus items and projects from one week to another.
+ * @param {Object} sourceWeekData - The week data to copy from.
+ * @param {Object} targetWeekData - The week data to copy to.
+ */
+function copyWeekData(sourceWeekData, targetWeekData) {
+    if (!sourceWeekData || !targetWeekData) {
+        console.error("Source or target week data is missing.");
+        return;
+    }
+
+    // Copy focus items
+    if (sourceWeekData.focus && Array.isArray(sourceWeekData.focus)) {
+        targetWeekData.focus = JSON.parse(JSON.stringify(sourceWeekData.focus));
+    } else {
+        console.warn("No focus items found in source week data.");
+        targetWeekData.focus = [];
+    }
+
+    // Copy projects
+    if (sourceWeekData.projects && Array.isArray(sourceWeekData.projects)) {
+        targetWeekData.projects = JSON.parse(JSON.stringify(sourceWeekData.projects));
+    } else {
+        console.warn("No projects found in source week data.");
+        targetWeekData.projects = [];
+    }
+
+    console.log("Focus items and projects copied successfully.");
 }
 
