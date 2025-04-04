@@ -33,21 +33,6 @@ body::-webkit-scrollbar {
   padding:3rem 3rem 0 3rem;
 }
 
-.focus-items{
-    display:grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr) ) ;
-    grid-template-rows: auto;
-    gap:1rem;
-    overflow-y: scroll;
-}
-
-.focusTitle, .checkbox{
-  display:grid;
-  grid-template-columns: 1fr 2fr;
-  justify-content: center;
-  align-items: center;
-}
-
 .page label{
   margin:0;
 }
@@ -68,15 +53,6 @@ body::-webkit-scrollbar {
 }
 
 
-.focus-item {
-  background: rgba(255,255,255,0.1);
-  padding: 1rem;
-  border-radius: 8px;
-  display: grid;
-  gap: 0.5rem;
-  border: 1px solid lightblue;
-  height: auto; /* Allow the container to resize dynamically */
-}
 
 .page input[type="text"] {
     width: 100%;
@@ -88,6 +64,17 @@ body::-webkit-scrollbar {
     background-color: rgba(0, 0, 0, 0);
     color: whitesmoke;
 }
+
+.focus-item .checkbox {
+  display: flex; /* Use flexbox for alignment */
+  align-items: center; /* Vertically align items */
+  justify-content: flex-start; /* Align items to the left */
+  gap: 0.5rem; /* Add spacing between the checkbox and label */
+  width: auto; /* Adjust width to fit content */
+  margin: 0; /* Remove extra margin */
+  padding: 0; /* Remove extra padding */
+}
+
 .focus-item .material-icons.delete-icon {
     position:absolute;
     transform:scale(80%);
@@ -96,7 +83,7 @@ body::-webkit-scrollbar {
     cursor: pointer;
 }
 
-#project-list, #calendar-container, .content, #laering-container{
+#project-list, #calendar-container, .content, #laering-container, .focus-items{
     width:100%; 
     display:grid;
     gap:2rem;
@@ -382,18 +369,36 @@ textarea:focus::before {
   gap:1rem;
 }
 
+.focus-item {
+  width:100%;
+  display:grid;
+  gap:1rem;
+}
+
 .tasks-container{
   width:60%;
   margin-bottom: 1rem;
 }
 
- h3{
+
+ h3, .focus-title{
   position: sticky;
   top: 0;
+  margin-top: 0;
+  margin-bottom: 2rem;
+  font-size: 3.6rem;
+  font-weight: 300;
   background: black; /* Match the background color of the page */
   z-index: 10;
   padding: 0 0 2rem 0;
   border-bottom: 1px solid lightgray; /* Optional: Add a subtle border for better visibility */
+}
+
+.focus-title input[type="text"]{
+  height:6rem;
+  margin-top: 0;
+  font-size: 3.6rem;
+  font-weight: 300;
 }
 
 .pageheaderTop {
@@ -453,6 +458,12 @@ textarea:focus::before {
     margin-bottom: 1rem;
 }
 
+.focus-item textarea{
+  border:none;
+  margin:0;
+  padding:0;
+}
+
 .input-container__label,
 .textarea-container__label,
 .checkbox-container__label {
@@ -489,34 +500,12 @@ textarea:focus::before {
     h1{
         font-size: 4rem;
     }
-    h3{
+
+    h3, .focusTitle input[type="text"]{
         font-size: 2rem;
         padding:1rem 0;
         margin:0;
     }
-    .focus-items{
-      width:100vw;
-      overflow-x: hidden;
-      grid-template-columns: 1fr;
-    }
-    .focus-item {
-      background: black;
-      padding: 0.5rem;
-      border:none;
-      border-top: 1px solid whitesmoke;
-      padding:0.5rem;
-      padding-top:1rem;
-      border-radius:0;
-      height:100%;
-    }    
-    .focus-item textarea{
-      border:none;
-    }    
-
-    .focus-item .material-icons.delete-icon {
-      right: 1rem;
-      bottom:.2rem; 
-  }
 
     /* Remove instructions and menu*/
     .instruction-content, #menu-box {

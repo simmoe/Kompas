@@ -1,13 +1,3 @@
-function triggerFirestoreUpdate() {
-  console.log('Trigger firestore update', isChangingWeek, hasChanged);
-  if (!isChangingWeek && hasChanged) {
-      setWeek();
-      hasChanged = false; // Reset the flag after the update
-      console.log("Firestore updated successfully.");
-  }
-}
-
-
 function showInfo(message) {
     // Forsøg at finde en eksisterende infoboks
     let infoBox = select('#info-box');
@@ -61,59 +51,43 @@ function showInfo(message) {
     }
   }
 
+  function triggerFirestoreUpdate() {
+    if (!isChangingWeek && hasChanged) {
+        setWeek();
+        hasChanged = false; // Reset the flag after the update
+        console.log("Firestore updated successfully.");
+    }
+}
 
   function addFocusItem() {
     let container = select('#focus-items');
     let newIndex = container.elt.childElementCount;
-
+    
     let newFocusDiv = createDiv();
     newFocusDiv.addClass('focus-item');
     newFocusDiv.elt.setAttribute('data-index', newIndex);
-
-    // Consolidated label and input container
-    let titleContainer = createDiv().addClass('input-container');
-    let labelTitle = createElement('label', 'Målsætning:').addClass('input-container__label');
-    labelTitle.attribute('for', 'focus-title-' + newIndex);
-    titleContainer.child(labelTitle);
-
+  
+    // Title input
+    let c = createDiv().addClass('focus-title');
     let titleInput = createInput('');
     titleInput.attribute('id', 'focus-title-' + newIndex);
     titleInput.attribute('name', `focus[${newIndex}].title`);
     titleInput.attribute('placeholder', 'Ny målsætning');
-    titleInput.addClass('input-container__input');
-    titleContainer.child(titleInput);
-    newFocusDiv.child(titleContainer);
-
-    // Add event listeners for title input
-    titleInput.elt.addEventListener("input", function() {
-        updateFocusItemModel(newFocusDiv);
-        hasChanged = true;
-    });
-    titleInput.elt.addEventListener("focusout", function() {
-        if (!isChangingWeek && hasChanged) {
-            updateFocusItemModel(newFocusDiv);
-            initializeProjects();
-            triggerFirestoreUpdate();
-            showInfo("Fokusområdet er gemt");
-        }
-    });
-
-    // Motivation container
-    let motivationContainer = createDiv().addClass('textarea-container');
-    let labelMotivation = createElement('label', 'Værdi:').addClass('textarea-container__label');
-    labelMotivation.attribute('for', 'focus-motivation-' + newIndex);
-    motivationContainer.child(labelMotivation);
-
+    c.child(titleInput);
+    newFocusDiv.child(c);
+    
+    // Motivation textarea
+    let d = createDiv().addClass('focus-motivation');
     let motivationTextArea = createElement('textarea');
     motivationTextArea.attribute('id', 'focus-motivation-' + newIndex);
     motivationTextArea.attribute('name', `focus[${newIndex}].motivation`);
-    motivationTextArea.attribute('placeholder', 'Hvad giver det dig at opnå denne målsæting?');
+    motivationTextArea.attribute('placeholder', 'Hvad giver det dig at opnå denne målsætning?');
     motivationTextArea.attribute('required', '');
-    motivationTextArea.addClass('textarea-container__textarea');
-    motivationContainer.child(motivationTextArea);
-    newFocusDiv.child(motivationContainer);
-
-    // Add event listeners for motivation textarea
+    d.child(motivationTextArea);
+    newFocusDiv.child(d);
+    
+    // Auto-resize functionality
+    setupAutoResize(motivationTextArea.elt);
     motivationTextArea.elt.addEventListener("input", function() {
         updateFocusItemModel(newFocusDiv);
         hasChanged = true;
@@ -126,22 +100,22 @@ function showInfo(message) {
             showInfo("Fokusområdet er gemt");
         }
     });
-
-    // Checkbox container
-    let checkboxContainer = createDiv().addClass('checkbox-container');
-    let labelCheckbox = createElement('label', 'Aktuel:').addClass('checkbox-container__label');
+    
+    // Checkbox-container with label and checkbox
+    let checkboxDiv = createDiv();
+    checkboxDiv.addClass('checkbox');
+    let labelCheckbox = createElement('label', 'Aktuel:');
     labelCheckbox.attribute('for', 'focus-main-' + newIndex);
-    checkboxContainer.child(labelCheckbox);
-
+    checkboxDiv.child(labelCheckbox);
+    
     let checkboxInput = createElement('input');
     checkboxInput.elt.setAttribute('type', 'checkbox');
     checkboxInput.attribute('id', 'focus-main-' + newIndex);
     checkboxInput.attribute('name', `focus[${newIndex}].isMain`);
-    checkboxInput.addClass('checkbox-container__checkbox');
-    checkboxContainer.child(checkboxInput);
-    newFocusDiv.child(checkboxContainer);
-
-    // Add event listeners for checkbox input
+    checkboxDiv.child(checkboxInput);
+    newFocusDiv.child(checkboxDiv);
+  
+    // Add event listener to checkbox
     checkboxInput.elt.addEventListener("change", function() {
         updateFocusItemModel(newFocusDiv);
         initializeProjects();
@@ -152,35 +126,46 @@ function showInfo(message) {
         triggerFirestoreUpdate();
         showInfo("Fokusområdet er gemt");
     });
-
+    
     // Delete icon
-    let deleteSpan = createSpan('delete').addClass('material-icons delete-icon');
+    let deleteSpan = createSpan('delete');
+    deleteSpan.addClass('material-icons delete-icon');
     deleteSpan.attribute('id', 'delete-focus-' + newIndex);
     deleteSpan.mousePressed(() => {
         let index = parseInt(newFocusDiv.elt.getAttribute('data-index'), 10);
         newFocusDiv.remove();
-
-        // Remove the corresponding focus item and project
         if (currentWeekData.focus && index !== -1) {
             currentWeekData.focus.splice(index, 1);
-            if (currentWeekData.projects && currentWeekData.projects.length > index) {
-                currentWeekData.projects.splice(index, 1);
-            }
         }
-
-        // Update data-index for remaining focus items
         let remainingItems = selectAll('.focus-item');
         remainingItems.forEach((item, i) => {
             item.elt.setAttribute('data-index', i);
         });
-
         hasChanged = true;
         triggerFirestoreUpdate();
     });
     newFocusDiv.child(deleteSpan);
-
+    
+    // Add event listeners to inputs
+    let inputs = newFocusDiv.elt.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.addEventListener('input', () => {
+            updateFocusItemModel(newFocusDiv);
+        });
+        input.addEventListener('focusout', () => {
+            if (!isChangingWeek && hasChanged) {
+                updateFocusItemModel(newFocusDiv);
+                initializeProjects();
+                triggerFirestoreUpdate();
+                showInfo("Fokusområdet er gemt");
+            }
+        });
+    });
+    
     container.child(newFocusDiv);
 }
+  
+  
 
   function updateFocusItemModel(focusItem) {
     // Find indekset for denne container blandt alle .focus-item elementer
@@ -437,7 +422,7 @@ function populateLaeringOgTabUI() {
 
   sections.forEach(sec => {
     // Opret overskrift
-    let secHeader = createElement("h3", sec.title);
+    let secHeader = createElement("h2", sec.title);
     container.child(secHeader);
 
     // Opret textarea
@@ -615,7 +600,7 @@ function populateTopGoalsUI() {
 
   // For hvert topmål oprettes en knap
   topGoals.forEach(({ item, index }) => {
-      let btn = createButton(item.title.substr(0, 14) + "...");
+      let btn = createButton(item.title);
       btn.addClass("top-goal-btn");
       btn.attribute("data-goal-index", index);
       btn.mousePressed(() => {
@@ -636,9 +621,6 @@ function populateTopGoalsUI() {
       detailsContainer.elt.removeAttribute("data-goal-index");
       detailsContainer.removeClass("open");
   }
-  detailsContainer.mousePressed((e) => {
-    console.log(e)
-  });
 
   
   /* // Add input field and "OK" button for fetching calendar events
@@ -659,6 +641,7 @@ function populateTopGoalsUI() {
    calendarInputContainer.child(calendarInput);
    calendarInputContainer.child(okButton);
    container.child(calendarInputContainer); */
+   
 }
 
 function toggleGoalDetails(goalIndex) {
@@ -872,27 +855,40 @@ function populateCalendarUI() {
     });
   }
 
-  function initializeInstructions() {
-    const instructions = document.querySelectorAll('.instruction-content');
-    instructions.forEach((instruction) => {
-    const link = instruction.previousElementSibling.querySelector('.instruction-link');
-    const arrow = link.querySelector('.arrow-icon');
-        instruction.addEventListener(('click'), () => {
-            // Toggle the clicked instruction
-            const isOpen = instruction.classList.contains('open');
-            instruction.classList.toggle('open', !isOpen);
-            arrow.classList.toggle('open', !isOpen);
-        });
-
-        // Add click event to toggle the instruction content
-        link.addEventListener('click', () => {
-            // Toggle the clicked instruction
-            const isOpen = instruction.classList.contains('open');
-            instruction.classList.toggle('open', !isOpen);
-            arrow.classList.toggle('open', !isOpen);
-        });
+  function initializeInstructions() {  
+    const instructions = document.querySelectorAll('.instruction');
+    instructions.forEach(instruction => {
+      // Gem den oprindelige tekst
+      const fullText = instruction.innerHTML;
+      // Sæt en kort tekst som standard
+      instruction.innerHTML = 'Instruks';
+      instruction.style.cursor = 'pointer';
+      instruction.style.color = 'blue'; // Gør teksten klikbar
+      instruction.style.display = 'flex';
+      instruction.style.alignItems = 'center';
+  
+      // Tilføj en pil fra Google Material Icons
+      const arrow = document.createElement('span');
+      arrow.classList.add('material-icons', 'arrow-icon');
+      arrow.innerHTML = 'expand_more';
+      arrow.style.marginLeft = '8px'; // Tilføj lidt afstand mellem tekst og pil
+      instruction.appendChild(arrow);
+  
+      // Tilføj en klik-hændelse for at folde ud og ind
+      instruction.addEventListener('click', function() {
+        if (instruction.innerHTML.startsWith('Instruks')) {
+          instruction.innerHTML = fullText;
+          arrow.innerHTML = 'expand_less'; // Skift pilens retning
+          arrow.style.transform = 'rotate(180deg)'; // Roter pilen
+        } else {
+          instruction.innerHTML = 'Instruks';
+          instruction.appendChild(arrow);
+          arrow.innerHTML = 'expand_more'; // Skift pilens retning
+          arrow.style.transform = 'rotate(0deg)'; // Roter pilen tilbage
+        }
+      });
     });
-}
+  }
 
 function initializeMenu() {
     // Select all pages
@@ -914,35 +910,5 @@ function initializeMenu() {
             // Append menu item to the menu container
             menuItem.parent(menuContainer);
         });
-}
-
-/**
- * Copies focus items and projects from one week to another.
- * @param {Object} sourceWeekData - The week data to copy from.
- * @param {Object} targetWeekData - The week data to copy to.
- */
-function copyWeekData(sourceWeekData, targetWeekData) {
-    if (!sourceWeekData || !targetWeekData) {
-        console.error("Source or target week data is missing.");
-        return;
-    }
-
-    // Copy focus items
-    if (sourceWeekData.focus && Array.isArray(sourceWeekData.focus)) {
-        targetWeekData.focus = JSON.parse(JSON.stringify(sourceWeekData.focus));
-    } else {
-        console.warn("No focus items found in source week data.");
-        targetWeekData.focus = [];
-    }
-
-    // Copy projects
-    if (sourceWeekData.projects && Array.isArray(sourceWeekData.projects)) {
-        targetWeekData.projects = JSON.parse(JSON.stringify(sourceWeekData.projects));
-    } else {
-        console.warn("No projects found in source week data.");
-        targetWeekData.projects = [];
-    }
-
-    console.log("Focus items and projects copied successfully.");
 }
 
