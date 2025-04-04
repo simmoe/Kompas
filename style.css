@@ -91,13 +91,6 @@ body::-webkit-scrollbar {
     padding-bottom:50vh;
 }
 
-
-.task-item{
-    display:grid;
-    grid-template-columns: 6fr 1fr;
-}
-
-
 .visible{
     left:0;
     transition: 0.3s all ease-in-out;
@@ -133,12 +126,6 @@ p{
   margin-bottom:5px;
 }
 
-.instruction {
-  display: grid; /* Kan senere toggles synlig/forskyldt via JavaScript */
-  grid-template-columns: 1fr 1fr;
-  gap:4rem;
-  border-bottom: 1px solid whitesmoke;
-}
 
   .info-box, #menu-box {
     position: fixed;
@@ -280,17 +267,13 @@ p{
 
 .task-item {
   position:relative;
-  display: grid;
-  grid-template-columns: 2fr 6fr;
-  gap: 1rem;
-  align-items: start;
 }
 
 .task-item .material-icons.delete-icon {
   position:absolute;
   transform:scale(80%);
   right: .4rem;
-  top:.2rem; 
+  bottom:.2rem; 
   cursor: pointer;
 }
 
@@ -415,20 +398,30 @@ textarea:focus::before {
 }
 
 .pageheaderTop .instruction-link {
-  align-self: flex-end; /* Align the link to the right */
+  align-self: flex-start; /* Align the link to the right */
   color: #0B3D91; /* Blue color */
   cursor: pointer;
-  font-size: 1rem; /* Match normal text size */
+  font-size: 1.5rem; /* Match normal text size */
   text-decoration: none; /* Remove underline */
   font-weight: 400; /* Normal text weight */
   display: flex;
   align-items: center;
   gap: 0.3rem; /* Space between text and arrow */
+  z-index: 100; /* Ensure it appears above other elements */
 }
 
 .pageheaderTop .instruction-link:hover {
   color: lightblue; /* Lighter blue on hover */
 }
+
+.instruction {
+  display: grid; /* Kan senere toggles synlig/forskyldt via JavaScript */
+  grid-template-columns: 1fr 1fr;
+  gap:4rem;
+  border-bottom: 1px solid whitesmoke;
+  z-index:10;
+}
+
 
 .arrow-icon {
   transition: transform 0.3s ease;

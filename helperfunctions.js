@@ -853,37 +853,37 @@ function populateCalendarUI() {
   function initializeInstructions() {  
     const instructions = document.querySelectorAll('.instruction');
     instructions.forEach(instruction => {
-      // Gem den oprindelige tekst
-      const fullText = instruction.innerHTML;
-      // Sæt en kort tekst som standard
-      instruction.innerHTML = 'Instruks';
-      instruction.style.cursor = 'pointer';
-      instruction.style.color = 'blue'; // Gør teksten klikbar
-      instruction.style.display = 'flex';
-      instruction.style.alignItems = 'center';
-  
-      // Tilføj en pil fra Google Material Icons
-      const arrow = document.createElement('span');
-      arrow.classList.add('material-icons', 'arrow-icon');
-      arrow.innerHTML = 'expand_more';
-      arrow.style.marginLeft = '8px'; // Tilføj lidt afstand mellem tekst og pil
-      instruction.appendChild(arrow);
-  
-      // Tilføj en klik-hændelse for at folde ud og ind
-      instruction.addEventListener('click', function() {
-        if (instruction.innerHTML.startsWith('Instruks')) {
-          instruction.innerHTML = fullText;
-          arrow.innerHTML = 'expand_less'; // Skift pilens retning
-          arrow.style.transform = 'rotate(180deg)'; // Roter pilen
-        } else {
-          instruction.innerHTML = 'Instruks';
-          instruction.appendChild(arrow);
-          arrow.innerHTML = 'expand_more'; // Skift pilens retning
-          arrow.style.transform = 'rotate(0deg)'; // Roter pilen tilbage
-        }
-      });
+        // Gem den oprindelige tekst
+        const fullText = instruction.getAttribute('data-full-text') || instruction.innerHTML;
+        instruction.setAttribute('data-full-text', fullText); // Store the full text
+        instruction.innerHTML = 'Instruks'; // Set the default short text
+
+        // Tilføj en pil fra Google Material Icons
+        const arrow = document.createElement('span');
+        arrow.classList.add('material-icons', 'arrow-icon');
+        arrow.innerHTML = 'expand_more';
+        arrow.style.marginLeft = '8px'; // Add spacing between text and arrow
+        instruction.appendChild(arrow);
+
+        // Add a click event listener to toggle the content
+        instruction.addEventListener('click', function () {
+            console.log('clicked');
+            const isExpanded = instruction.classList.contains('expanded');
+            if (isExpanded) {
+                instruction.innerHTML = 'Instruks';
+                instruction.appendChild(arrow); // Keep the arrow intact
+                arrow.innerHTML = 'expand_more';
+                arrow.style.transform = 'rotate(0deg)';
+            } else {
+                instruction.innerHTML = fullText;
+                instruction.appendChild(arrow); // Keep the arrow intact
+                arrow.innerHTML = 'expand_less';
+                arrow.style.transform = 'rotate(180deg)';
+            }
+            instruction.classList.toggle('expanded');
+        });
     });
-  }
+}
 
 function initializeMenu() {
     // Select all pages
@@ -905,5 +905,73 @@ function initializeMenu() {
             // Append menu item to the menu container
             menuItem.parent(menuContainer);
         });
+}
+
+const instructionsData = {
+  page1: {
+    title: "Instruks",
+    content: [
+      '"The future you see is the future you get." – Robert G. Allen',
+      "Reflekter over dine vigtigste målsætninger. Brug et par minutter hver gang til at læse og redigere listen. Forsøg at skabe overordnede titler, uden at de bliver fluffy fordi de skal rumme for meget.",
+      'Hvis du ser målsætningen som noget du skal fokusere på i denne periode, så sæt kryds i "Hovedfokus".'
+    ]
+  },
+  page2: {
+    title: "Instruks",
+    content: [
+      '"Get everything into IN" - David Allen',
+      "Opdel hvert af dine mål i delopgaver, så de bliver lettere at overskue og planlægge. Brug 5-10 minutter til løbende justering."
+    ]
+  },
+  page3: {
+    title: "Instruks",
+    content: [
+      '"Learn from your failure and it’s not failure. Do it again and it is." – Live Your Legend',
+      '"Get over your losses instead of storing them in the pain body." – Falcon Ener Kise',
+      "Skriv de vigtigste læringspunkter fra forrige periode ned - både tab og succeser - og notér, hvordan de skal integreres i dine næste skridt. Brug en enkelt linje til hvert punkt. Tid: 2-5 minutter."
+    ]
+  },
+  page4: {
+    title: "Instruks",
+    content: [
+      '"Focus is the key to the world." - William Dinsmore III',
+      "Vælg aktiviteter fra dine primære målsætninger, som afspejler dit liv lige nu. Inklusiv vigtige begivenheder, hvis nødvendigt – og planlæg kerneopgaverne. Tid: 2-5 minutter."
+    ]
+  },
+  page5: {
+    title: "Instruks",
+    content: [
+      "Noter, hvad du allerede nu ved, er vigtigt at fokusere på i næste periode - de elementer, du med sikkerhed ikke kan nå i denne uge. Tid: 2-5 minutter."
+    ]
+  }
+};
+
+function initializeInstructions() {
+  Object.keys(instructionsData).forEach(pageId => {
+    const instructionData = instructionsData[pageId];
+    const placeholder = document.getElementById(`instruction-${pageId}`);
+    if (placeholder) {
+      const link = document.createElement("a");
+      link.className = "instruction-link";
+      link.innerHTML = `${instructionData.title} <span class="material-icons arrow-icon">expand_more</span>`;
+      placeholder.appendChild(link);
+
+      const contentDiv = document.createElement("div");
+      contentDiv.className = "instruction-content";
+      contentDiv.style.display = "none"; // Initially hidden
+      instructionData.content.forEach(paragraph => {
+        const p = document.createElement("p");
+        p.textContent = paragraph;
+        contentDiv.appendChild(p);
+      });
+      placeholder.appendChild(contentDiv);
+
+      link.addEventListener("click", () => {
+        const isVisible = contentDiv.style.display === "block";
+        contentDiv.style.display = isVisible ? "none" : "block";
+        link.querySelector(".arrow-icon").textContent = isVisible ? "expand_more" : "expand_less";
+      });
+    }
+  });
 }
 

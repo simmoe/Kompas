@@ -4,16 +4,6 @@ let pages; // array med alle elementer med class = page
 let currentWeekNumber;
 let hasChanged = false; // Global flag der indikerer, at der er ændringer
 
-// Global model for den aktuelle uge
-let currentWeekData = {};
-
-function getCurrentWeekNumber() {
-  const currentDate = new Date();
-  const startDate = new Date(currentDate.getFullYear(), 0, 1);
-  const days = Math.floor((currentDate - startDate) / (24 * 60 * 60 * 1000));
-  const weekNumber = Math.ceil((days + startDate.getDay() + 1) / 7);
-  return weekNumber;
-}
 
 function setup() {
   console.log('P5.js er loaded');
@@ -36,6 +26,17 @@ function setup() {
 }
 
 let isChangingWeek = false; // Flag to indicate if a week change is in progress
+
+// Global model for den aktuelle uge
+let currentWeekData = {};
+
+function getCurrentWeekNumber() {
+  const currentDate = new Date();
+  const startDate = new Date(currentDate.getFullYear(), 0, 1);
+  const days = Math.floor((currentDate - startDate) / (24 * 60 * 60 * 1000));
+  const weekNumber = Math.ceil((days + startDate.getDay() + 1) / 7);
+  return weekNumber;
+}
 
 function changeWeek(direction) {
   if (hasChanged) {
