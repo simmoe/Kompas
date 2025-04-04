@@ -195,7 +195,8 @@ p{
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    margin-bottom: 10px;
+    padding-bottom: 1rem;
+    border-bottom:1px solid whitesmoke;
   }
   
   .top-goal-btn {
@@ -306,7 +307,8 @@ p{
     font-size: 1.5rem;
     line-height: 1.4;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 2rem;
+    border:none;
+    padding: 2rem 0;
     border-radius: 4px;
     box-sizing: border-box;
     white-space: pre-wrap;
@@ -395,10 +397,13 @@ textarea:focus::before {
 }
 
 .focus-title input[type="text"]{
-  height:6rem;
   margin-top: 0;
   font-size: 3.6rem;
   font-weight: 300;
+}
+
+.task-item input[type="text"]{
+  font-weight:bold;
 }
 
 .pageheaderTop {
@@ -501,7 +506,7 @@ textarea:focus::before {
         font-size: 4rem;
     }
 
-    h3, .focusTitle input[type="text"]{
+    h3, .focus-title input[type="text"]{
         font-size: 2rem;
         padding:1rem 0;
         margin:0;

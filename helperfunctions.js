@@ -234,9 +234,6 @@ function showInfo(message) {
   function createTaskElement(task, projectIndex) {
     let taskDiv = createDiv().addClass('task-item');
 
-    // Label for hovedopgave
-    let taskTitleLabel = createElement('label', 'Hovedopgave:').addClass('task-title-label');
-
     let taskTitleInput = createInput(task.title || '').addClass('task-title-input');
     taskTitleInput.attribute('placeholder', 'Titel');
     taskTitleInput.elt.addEventListener('input', function() {
@@ -251,9 +248,6 @@ function showInfo(message) {
             console.log("Current task data:", task);
         }
     });
-
-    // Label for underopgaver
-    let taskDescriptionLabel = createElement('label', 'Underopgaver:').addClass('task-description-label');
 
     let taskDescriptionTextArea = createElement('textarea').addClass('task-description-textarea');
     taskDescriptionTextArea.attribute('placeholder', 'Underopgaver adskilt af linjeskift');
@@ -281,9 +275,7 @@ function showInfo(message) {
     });
 
     // Tilføj elementerne i den ønskede rækkefølge
-    taskDiv.child(taskTitleLabel);
     taskDiv.child(taskTitleInput);
-    taskDiv.child(taskDescriptionLabel);
     taskDiv.child(taskDescriptionTextArea);
     taskDiv.child(deleteIcon);
 
@@ -422,7 +414,7 @@ function populateLaeringOgTabUI() {
 
   sections.forEach(sec => {
     // Opret overskrift
-    let secHeader = createElement("h2", sec.title);
+    let secHeader = createElement("h3", sec.title);
     container.child(secHeader);
 
     // Opret textarea
@@ -600,7 +592,7 @@ function populateTopGoalsUI() {
 
   // For hvert topmål oprettes en knap
   topGoals.forEach(({ item, index }) => {
-      let btn = createButton(item.title);
+      let btn = createButton(item.title.substr(0, 15) + "..."); // Forkort titlen til 20 tegn
       btn.addClass("top-goal-btn");
       btn.attribute("data-goal-index", index);
       btn.mousePressed(() => {
@@ -621,6 +613,9 @@ function populateTopGoalsUI() {
       detailsContainer.elt.removeAttribute("data-goal-index");
       detailsContainer.removeClass("open");
   }
+  detailsContainer.mousePressed(() => {
+      detailsContainer.removeClass("open");
+  })
 
   
   /* // Add input field and "OK" button for fetching calendar events
