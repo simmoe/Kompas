@@ -112,25 +112,29 @@ async function copyLastWeekData(newWeekNumber) {
   console.log('Påbegynd kopiering af uge', previousWeekNumber);
   try {
     console.log(`Forsøger at hente data fra uge ${previousWeekNumber}`);
-    // Hent data fra den forrige uge
     const docPath = `/kompas/user_1/weeks/week_${previousWeekNumber}`;
     const docRef = firebase.firestore().doc(docPath);
     const docSnap = await docRef.get();
+
     if (docSnap.exists) {
-      currentWeekData = docSnap.data();
-      currentWeekData.weekNumber = newWeekNumber;
-      console.log(`Ugedata for uge ${previousWeekNumber} hentet og opdateret til currentWeekData`);
-      // Opdater UI'en med den hentede data
+      const lastWeekData = docSnap.data();
+      currentWeekData = { ...lastWeekData, weekNumber: newWeekNumber };
+
+      // Initialize an empty calendar for the new week
+      currentWeekData.calendar = Array.from({ length: 7 }, () => ({ tasks: [] }));
+
+      // Filter uncompleted tasks from last week and add them to the first day
+      currentWeekData.calendar[0].tasks = lastWeekData.calendar
+        ?.flatMap(day => day.tasks.filter(task => !task.completed)) || [];
+
+      console.log("Uncompleted tasks added to the first day of the new week:", currentWeekData.calendar[0].tasks);
       populateAllUI();
-      console.log("Data kopieret til ny uge:", currentWeekData);
       showInfo("Data kopieret fra sidste uge.");
     } else {
       console.log(`Ingen data fundet for uge ${previousWeekNumber}. Initialiserer ny uge.`);
       currentWeekData = { weekNumber: newWeekNumber, projects: [], calendar: [], stolthed: "", laeringOgTab: "", inspiration: "", mennesker: "", forbered: "", planForud: "" };
       showInfo("Ingen tidligere data fundet. Ny uge oprettet.");
     }
-    // Save the copied or new week data to Firebase
-    await setWeek();
   } catch (error) {
     console.error("Fejl ved kopiering af ugedata:", error);
   }
@@ -207,4 +211,5 @@ async function getWeekData(weekNumber) {
       throw error; // Re-throw the error for the caller to handle
   }
 }
+
 
