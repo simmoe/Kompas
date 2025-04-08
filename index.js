@@ -20,7 +20,7 @@ function setup() {
   currentWeekNumber = getCurrentWeekNumber();
   updateWeekDisplay();
   initializeMenu()
-  initializeInstructions()
+  initializeSubmenu()
   // evt. kald getWeek() for at hente data for ugen
   getWeek();
 }

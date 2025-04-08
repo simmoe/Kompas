@@ -581,10 +581,6 @@ function populateTopGoalsUI() {
   // Hent topmål fra den lokale model
   let topGoals = getTopGoals();
 
-  // Opret en paragraf med instruktion
-  let instr = createElement("p", "Dine topmål for næste periode er:");
-  container.child(instr);
-
   // Opret en container til topmål-knapperne
   let buttonContainer = createDiv();
   buttonContainer.addClass("top-goals-buttons");
@@ -636,7 +632,6 @@ function populateTopGoalsUI() {
    calendarInputContainer.child(calendarInput);
    calendarInputContainer.child(okButton);
    container.child(calendarInputContainer); */
-   
 }
 
 function toggleGoalDetails(goalIndex) {
@@ -850,41 +845,6 @@ function populateCalendarUI() {
     });
   }
 
-  function initializeInstructions() {  
-    const instructions = document.querySelectorAll('.instruction');
-    instructions.forEach(instruction => {
-        // Gem den oprindelige tekst
-        const fullText = instruction.getAttribute('data-full-text') || instruction.innerHTML;
-        instruction.setAttribute('data-full-text', fullText); // Store the full text
-        instruction.innerHTML = 'Instruks'; // Set the default short text
-
-        // Tilføj en pil fra Google Material Icons
-        const arrow = document.createElement('span');
-        arrow.classList.add('material-icons', 'arrow-icon');
-        arrow.innerHTML = 'expand_more';
-        arrow.style.marginLeft = '8px'; // Add spacing between text and arrow
-        instruction.appendChild(arrow);
-
-        // Add a click event listener to toggle the content
-        instruction.addEventListener('click', function () {
-            console.log('clicked');
-            const isExpanded = instruction.classList.contains('expanded');
-            if (isExpanded) {
-                instruction.innerHTML = 'Instruks';
-                instruction.appendChild(arrow); // Keep the arrow intact
-                arrow.innerHTML = 'expand_more';
-                arrow.style.transform = 'rotate(0deg)';
-            } else {
-                instruction.innerHTML = fullText;
-                instruction.appendChild(arrow); // Keep the arrow intact
-                arrow.innerHTML = 'expand_less';
-                arrow.style.transform = 'rotate(180deg)';
-            }
-            instruction.classList.toggle('expanded');
-        });
-    });
-}
-
 function initializeMenu() {
     // Select all pages
     const pages = selectAll('.page');
@@ -907,71 +867,96 @@ function initializeMenu() {
         });
 }
 
-const instructionsData = {
+const submenuData = {
   page1: {
-    title: "Instruks",
-    content: [
-      '"The future you see is the future you get." – Robert G. Allen',
-      "Reflekter over dine vigtigste målsætninger. Brug et par minutter hver gang til at læse og redigere listen. Forsøg at skabe overordnede titler, uden at de bliver fluffy fordi de skal rumme for meget.",
-      'Hvis du ser målsætningen som noget du skal fokusere på i denne periode, så sæt kryds i "Hovedfokus".'
-    ]
+    "Instruks": {
+      content: [
+        '"The future you see is the future you get." – Robert G. Allen',
+        "Reflekter over dine vigtigste målsætninger. Brug et par minutter hver gang til at læse og redigere listen. Forsøg at skabe overordnede titler, uden at de bliver fluffy fordi de skal rumme for meget.",
+        'Hvis du ser målsætningen som noget du skal fokusere på i denne periode, så sæt kryds i "Hovedfokus".'
+      ]
+    },
   },
   page2: {
-    title: "Instruks",
-    content: [
-      '"Get everything into IN" - David Allen',
-      "Opdel hvert af dine mål i delopgaver, så de bliver lettere at overskue og planlægge. Brug 5-10 minutter til løbende justering."
-    ]
+    "Instruks" : {
+      content: [
+        '"Get everything into IN" - David Allen',
+        "Opdel hvert af dine mål i delopgaver, så de bliver lettere at overskue og planlægge. Brug 5-10 minutter til løbende justering."
+      ]
+    },
   },
   page3: {
-    title: "Instruks",
-    content: [
-      '"Learn from your failure and it’s not failure. Do it again and it is." – Live Your Legend',
-      '"Get over your losses instead of storing them in the pain body." – Falcon Ener Kise',
-      "Skriv de vigtigste læringspunkter fra forrige periode ned - både tab og succeser - og notér, hvordan de skal integreres i dine næste skridt. Brug en enkelt linje til hvert punkt. Tid: 2-5 minutter."
-    ]
+    "Instruks": {
+      content: [
+        '"Learn from your failure and it’s not failure. Do it again and it is." – Live Your Legend',
+        '"Get over your losses instead of storing them in the pain body." – Falcon Ener Kise',
+        "Skriv de vigtigste læringspunkter fra forrige periode ned - både tab og succeser - og notér, hvordan de skal integreres i dine næste skridt. Brug en enkelt linje til hvert punkt. Tid: 2-5 minutter."
+      ]
+    },
   },
   page4: {
-    title: "Instruks",
-    content: [
-      '"Focus is the key to the world." - William Dinsmore III',
-      "Vælg aktiviteter fra dine primære målsætninger, som afspejler dit liv lige nu. Inklusiv vigtige begivenheder, hvis nødvendigt – og planlæg kerneopgaverne. Tid: 2-5 minutter."
-    ]
+    "Instruks": {
+      content: [
+        '"Focus is the key to the world." - William Dinsmore III',
+        "Vælg aktiviteter fra dine primære målsætninger, som afspejler dit liv lige nu. Inklusiv vigtige begivenheder, hvis nødvendigt – og planlæg kerneopgaverne. Tid: 2-5 minutter."
+      ]
+    },
   },
   page5: {
-    title: "Instruks",
-    content: [
-      "Noter, hvad du allerede nu ved, er vigtigt at fokusere på i næste periode - de elementer, du med sikkerhed ikke kan nå i denne uge. Tid: 2-5 minutter."
-    ]
+    "Instruks": {
+      content: [
+        "Noter, hvad du allerede nu ved, er vigtigt at fokusere på i næste periode - de elementer, du med sikkerhed ikke kan nå i denne uge. Tid: 2-5 minutter."
+      ]
+    },
   }
 };
 
-function initializeInstructions() {
-  Object.keys(instructionsData).forEach(pageId => {
-    const instructionData = instructionsData[pageId];
-    const placeholder = document.getElementById(`instruction-${pageId}`);
-    if (placeholder) {
-      const link = document.createElement("a");
-      link.className = "instruction-link";
-      link.innerHTML = `${instructionData.title} <span class="material-icons arrow-icon">expand_more</span>`;
-      placeholder.appendChild(link);
+function initializeSubmenu() {
+    // Iterate over each page in the submenuData object
+    Object.keys(submenuData).forEach(pageId => {
+        const pageData = submenuData[pageId];
+        const placeholder = select(`#submenu-${pageId}`);
+        
+        // Ensure the placeholder exists
+        if (!placeholder) return;
 
-      const contentDiv = document.createElement("div");
-      contentDiv.className = "instruction-content";
-      contentDiv.style.display = "none"; // Initially hidden
-      instructionData.content.forEach(paragraph => {
-        const p = document.createElement("p");
-        p.textContent = paragraph;
-        contentDiv.appendChild(p);
-      });
-      placeholder.appendChild(contentDiv);
+        // Create a shared content div for this submenu
+        const sharedContentDiv = createDiv();
+        sharedContentDiv.addClass("shared-content"); // Add a class for styling
+        placeholder.child(sharedContentDiv);
 
-      link.addEventListener("click", () => {
-        const isVisible = contentDiv.style.display === "block";
-        contentDiv.style.display = isVisible ? "none" : "block";
-        link.querySelector(".arrow-icon").textContent = isVisible ? "expand_more" : "expand_less";
-      });
-    }
-  });
+        // Iterate over each submenu item for the page
+        Object.keys(pageData).forEach(menuTitle => {
+            const menuItem = pageData[menuTitle];
+
+            // Create the button for the submenu item
+            const button = createButton(menuTitle);
+            button.addClass("submenu-button");
+            placeholder.child(button);
+
+            // Add click functionality to the button
+            button.mousePressed(() => {
+                const isVisible = sharedContentDiv.hasClass("open");
+
+                // If the shared content div is already visible and belongs to this button, hide it
+                if (isVisible && sharedContentDiv.elt.getAttribute("data-active-button") === menuTitle) {
+                    sharedContentDiv.removeClass("open");
+                    sharedContentDiv.elt.removeAttribute("data-active-button");
+                } else {
+                    // Populate the shared content div with the submenu content
+                    sharedContentDiv.html(""); // Clear previous content
+                    menuItem.content.forEach(paragraph => {
+                        const p = createP(paragraph);
+                        sharedContentDiv.child(p);
+                    });
+
+                    // Show the shared content div and mark it as active for this button
+                    sharedContentDiv.addClass("open");
+                    sharedContentDiv.elt.setAttribute("data-active-button", menuTitle);
+                }
+            });
+        });
+    });
 }
+
 
