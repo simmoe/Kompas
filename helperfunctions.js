@@ -163,6 +163,9 @@ function showInfo(message) {
     });
     
     container.child(newFocusDiv);
+
+    // Automatically focus on the title input of the newly added focus item
+    titleInput.elt.focus();
 }
   
   
