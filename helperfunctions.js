@@ -978,7 +978,13 @@ function getISODateForCalendar(weekNumber, dayIndex) {
     const firstMonday = new Date(jan4.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7))); // Adjust to the first Monday
 
     // Adjust the dayIndex to align with FullCalendar's Sunday-starting week
-    const adjustedDayIndex = (dayIndex + 1) % 7;
+    let adjustedDayIndex = (dayIndex + 1) % 7;
+
+    // Handle Sunday (dayIndex 6 in your logic, adjusted to 0 for FullCalendar)
+    if (dayIndex === 6) {
+        weekNumber += 1; // Move Sunday to the next week
+        adjustedDayIndex = 0; // Reset to the first day of the next week
+    }
 
     // Calculate the target date for the given week and adjusted day index
     const targetDate = new Date(firstMonday);
@@ -994,23 +1000,38 @@ function printCalendar() {
     if (!modal) {
         modal = createDiv().id('calendar-modal').addClass('calendar-modal');
         modal.parent(document.body);
+
+        // Add a print button
+        const printButton = createButton('Print');
+        printButton.addClass('print-button');
+        printButton.mousePressed(() => {
+            printModalContent();
+        });
+        modal.child(printButton);
         // Add a container for the FullCalendar
         const calendarContainer = createDiv().id('fullcalendar-container');
         modal.child(calendarContainer);
-    }else{
-      modal.remove()
-      return
+
+    } else {
+        modal.remove();
+        return;
     }
 
     // Initialize FullCalendar
     const calendarEl = document.getElementById('fullcalendar-container');
     const calendar = new FullCalendar.Calendar(calendarEl, {
         locale: 'da', // Set the locale to Danish
-        initialView: 'timeGridWeek',
+        initialView: 'listWeek',
         firstDay: 1, // Start the week on Monday
         headerToolbar: {
-            center: 'title',
-            right: 'timeGridWeek,timeGridDay'
+            right: 'listWeek,timeGridWeek,timeGridDay' // User can switch between views
+        },
+        buttonText: {
+            today: 'i dag',
+            month: 'måned',
+            week: 'grid',
+            day: 'dag',
+            list: 'liste'
         },
         events: currentWeekData.calendar.flatMap((day, dayIndex) => {
             return day.tasks.map(task => ({
@@ -1028,5 +1049,64 @@ function printCalendar() {
 
     // Show the modal
     modal.style('display', 'block');
+}
+
+function printModalContent() {
+    const modalContent = document.getElementById('calendar-modal').innerHTML;
+
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+
+    // Use modern DOM manipulation to build the document
+    const printDocument = printWindow.document;
+
+    // Set up the document structure
+    printDocument.open();
+    const html = printDocument.createElement('html');
+    const head = printDocument.createElement('head');
+    const body = printDocument.createElement('body');
+
+    // Add title
+    const title = printDocument.createElement('title');
+    title.textContent = 'Print Calendar';
+    head.appendChild(title);
+
+    // Add stylesheets
+    const fullCalendarStyles = printDocument.createElement('link');
+    fullCalendarStyles.rel = 'stylesheet';
+    fullCalendarStyles.href = 'https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css';
+    head.appendChild(fullCalendarStyles);
+
+    const mainStyles = printDocument.createElement('link');
+    mainStyles.rel = 'stylesheet';
+    mainStyles.href = './styles.css';
+    head.appendChild(mainStyles);
+
+    const printStyles = printDocument.createElement('link');
+    printStyles.rel = 'stylesheet';
+    printStyles.href = './print-styles.css';
+    head.appendChild(printStyles);
+
+    // Add the modal content
+    const printContainer = printDocument.createElement('div');
+    printContainer.id = 'print-container';
+    printContainer.innerHTML = modalContent;
+    body.appendChild(printContainer);
+
+    // Add a script to trigger print and close the window
+    const script = printDocument.createElement('script');
+    script.textContent = `
+        window.onload = function() {
+            window.print();
+            //window.close();
+        };
+    `;
+    body.appendChild(script);
+
+    // Append head and body to the document
+    html.appendChild(head);
+    html.appendChild(body);
+    printDocument.appendChild(html);
+    printDocument.close();
 }
 

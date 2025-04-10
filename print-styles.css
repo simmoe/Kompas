@@ -1,0 +1,42 @@
+/* General print styles */
+@media print {
+    @import url('https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css'); /* Include FullCalendar's styles */
+
+    body {
+        font-family: Arial;
+        margin: 0;
+        padding: 0;
+        width:100vw;
+        height:100vh;
+        overflow: hidden; /* Prevent scrolling */
+    }
+
+    #fullcalendar-container .fc-button-group {
+        display: none; /* Hide button group in print view */
+    }
+
+
+    #fullcalendar-container  #print-container {
+        display: none; /* Hide the print button */
+    }
+    #fullcalendar-container .fc-toolbar-title {
+        font-size: 24px; /* Increase font size of the title */
+        margin: 0;
+        padding: 0;
+    }
+    
+
+
+    #fullcalendar-container .fc-scrollgrid-section {
+        display: none; /* Hide all .fc-scrollgrid-section elements */
+    }
+
+    #fullcalendar-container .fc-scrollgrid-section:first-of-type {
+        display: block; /* Make only the first .fc-scrollgrid-section visible */
+    }
+
+    @page {
+        size: A4 landscape; /* Force landscape orientation */
+        margin: 10mm;
+    }
+}
