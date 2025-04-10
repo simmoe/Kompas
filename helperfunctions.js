@@ -59,7 +59,7 @@ function showInfo(message) {
     }
 }
 
-  function addFocusItem() {
+  function addFocusItem(focusDiv = false) {
     let container = select('#focus-items');
     let newIndex = container.elt.childElementCount;
     
@@ -164,8 +164,9 @@ function showInfo(message) {
     
     container.child(newFocusDiv);
 
-    // Automatically focus on the title input of the newly added focus item
-    titleInput.elt.focus();
+        // Automatically focus on the title input of the newly added focus item
+      focusDiv &&  titleInput.elt.focus();
+
 }
   
   
@@ -901,8 +902,10 @@ const submenuData = {
     "Instruks": {
       content: [
         '"Focus is the key to the world." - William Dinsmore III',
-        "Vælg aktiviteter fra dine primære målsætninger, som afspejler dit liv lige nu. Inklusiv vigtige begivenheder, hvis nødvendigt – og planlæg kerneopgaverne. Tid: 2-5 minutter."
+        "Vælg aktiviteter som afspejler dit liv lige nu. Inklusiv vigtige begivenheder, hvis nødvendigt – og planlæg kerneopgaverne. Tid: 2-5 minutter."
       ]
+    },
+    '<span id="print-calendar">Vis kalender</span>': {
     },
   },
   page5: {
@@ -919,7 +922,7 @@ function initializeSubmenu() {
     Object.keys(submenuData).forEach(pageId => {
         const pageData = submenuData[pageId];
         const placeholder = select(`#submenu-${pageId}`);
-        
+
         // Ensure the placeholder exists
         if (!placeholder) return;
 
@@ -948,6 +951,7 @@ function initializeSubmenu() {
                 } else {
                     // Populate the shared content div with the submenu content
                     sharedContentDiv.html(""); // Clear previous content
+                    if(!menuItem.content) return;
                     menuItem.content.forEach(paragraph => {
                         const p = createP(paragraph);
                         sharedContentDiv.child(p);
@@ -960,6 +964,69 @@ function initializeSubmenu() {
             });
         });
     });
+
+    select('#print-calendar').mousePressed(()=>printCalendar());
+
 }
 
+function getISODateForCalendar(weekNumber, dayIndex) {
+    // Get the current year
+    const year = new Date().getFullYear();
+
+    // Calculate the first Monday of the year (ISO-8601 standard)
+    const jan4 = new Date(year, 0, 4); // January 4th is always in the first ISO week
+    const firstMonday = new Date(jan4.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7))); // Adjust to the first Monday
+
+    // Adjust the dayIndex to align with FullCalendar's Sunday-starting week
+    const adjustedDayIndex = (dayIndex + 1) % 7;
+
+    // Calculate the target date for the given week and adjusted day index
+    const targetDate = new Date(firstMonday);
+    targetDate.setDate(firstMonday.getDate() + (weekNumber - 1) * 7 + adjustedDayIndex);
+
+    // Return the date in ISO format (YYYY-MM-DD)
+    return targetDate.toISOString().split('T')[0];
+}
+
+function printCalendar() {
+    // Create a modal container if it doesn't exist
+    let modal = select('#calendar-modal');
+    if (!modal) {
+        modal = createDiv().id('calendar-modal').addClass('calendar-modal');
+        modal.parent(document.body);
+        // Add a container for the FullCalendar
+        const calendarContainer = createDiv().id('fullcalendar-container');
+        modal.child(calendarContainer);
+    }else{
+      modal.remove()
+      return
+    }
+
+    // Initialize FullCalendar
+    const calendarEl = document.getElementById('fullcalendar-container');
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'da', // Set the locale to Danish
+        initialView: 'timeGridWeek',
+        firstDay: 1, // Start the week on Monday
+        headerToolbar: {
+            center: 'title',
+            right: 'timeGridWeek,timeGridDay'
+        },
+        events: currentWeekData.calendar.flatMap((day, dayIndex) => {
+            return day.tasks.map(task => ({
+                title: task.title,
+                start: `${getISODateForCalendar(currentWeekData.weekNumber, dayIndex)}`, // Full-day events
+                allDay: true,
+                backgroundColor: task.completed ? '#28a745' : '#dc3545', // Green for completed, red for pending
+                borderColor: task.completed ? '#28a745' : '#dc3545' // Match border color
+            }));
+        })
+    });
+
+    // Render the calendar
+    calendar.render();
+
+    // Show the modal
+    modal.style('display', 'block');
+}
 

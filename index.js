@@ -1,4 +1,4 @@
-let currentPage = 1;
+let currentPage = 4;
 let pages; // array med alle elementer med class = page 
 // Global variabel til ugenummeret
 let currentWeekNumber;
@@ -15,7 +15,7 @@ function setup() {
   select('#prev-week').mousePressed(() => changeWeek(-1));
   select('#next-week').mousePressed(() => changeWeek(1));
   // Registrer knappen "Tilføj fokusområde" til at kalde addFocusItem
-  select('#add-focus-btn').mousePressed(addFocusItem);
+  select('#add-focus-btn').mousePressed(()=>addFocusItem(true));
   // Set the current week number dynamically
   currentWeekNumber = getCurrentWeekNumber();
   updateWeekDisplay();
@@ -23,6 +23,7 @@ function setup() {
   initializeSubmenu()
   // evt. kald getWeek() for at hente data for ugen
   getWeek();
+  shiftPage(currentPage)
 }
 
 let isChangingWeek = false; // Flag to indicate if a week change is in progress

@@ -13,15 +13,19 @@
 /* Alternativt kan du også skjule scrollbars i Firefox */
 body {
   scrollbar-width: none; /* Firefox */
+  overflow: hidden; /* Prevent scrollbars from appearing */
+  max-height: 100vh; /* Restrict height to viewport */
 }
 
 body::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
 .page{
+  background: black url('./assets/compass.png') no-repeat; /* Add compass as background */
+  background-size: 100px; /* Adjust size as needed */
+  background-position: 100% 0; /* Position it similarly to .compass-bg */
   position: fixed;
   top: 0;
-  background: black;
   left: -100vw;
   width: 100vw;
   height: 90vh;
@@ -31,6 +35,7 @@ body::-webkit-scrollbar {
   color: white;
   align-content: start;
   padding:3rem 3rem 0 3rem;
+  z-index: 1; /* Ensure it is above .compass-bg */
 }
 
 .page label{
@@ -45,6 +50,15 @@ body::-webkit-scrollbar {
 button{
   display:grid;
   place-items: center;
+}
+
+.calendar-modal{
+  background:white;
+  z-index:100;
+  position:fixed;
+  width:100vw;
+  height:100%;
+  padding:.5rem;
 }
 
 .submenu-placeholder {
@@ -152,6 +166,8 @@ h1 {
   text-transform: uppercase; /* Giver et stærkere visuelt udtryk */
   letter-spacing: 1px; /* Letter-spacing giver et klart, tydeligt udtryk */
   margin-bottom: 0;
+  position: relative; /* Ensure z-index applies */
+  z-index: 10; /* Higher than .compass-bg */
 }
 
 .blue{
@@ -281,7 +297,7 @@ p{
     background-repeat: no-repeat;
     opacity: 0.5; /* juster gennemsigtigheden her */
     pointer-events: none; /* så det ikke forstyrrer interaktivitet */
-    z-index: 100; /* hvis du ønsker, at det skal ligge bag indholdet */
+    z-index: -1; /* Place it behind the .page */
   }
 
   #force-update-btn{
@@ -359,6 +375,13 @@ textarea:focus::before {
     display: none;
 }
 
+/* Prevent layout shifts when focusing on inputs or textareas */
+input:focus, textarea:focus {
+  outline: none; /* Remove default focus outline */
+  border: 1px solid #ccc; /* Add a consistent border */
+  box-shadow: none; /* Prevent shadow effects */
+}
+
 /* Styling for footer */
 .footer-fixed {
   position: fixed;
@@ -424,7 +447,7 @@ textarea:focus::before {
   font-weight: 300;
   background: black; /* Match the background color of the page */
   z-index: 10;
-  padding: 0 0 2rem 0;
+  padding: 0 0 1rem 0;
   border-bottom: 1px solid lightgray; /* Optional: Add a subtle border for better visibility */
 }
 
@@ -443,12 +466,11 @@ textarea:focus::before {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.5rem;
 }
 
 .pageheaderTop .instruction-link {
   align-self: flex-start; /* Align the link to the right */
-  color: #0B3D91; /* Blue color */
+  color: blue; /* Blue color */
   cursor: pointer;
   font-size: 1.5rem; /* Match normal text size */
   text-decoration: none; /* Remove underline */
@@ -494,8 +516,11 @@ textarea:focus::before {
   padding-bottom:1rem;
 }
 
+.add-button-bottom{
+  display:grid;
+}
 #add-focus-btn{
-  margin-top:1rem;
+  margin:1rem 0 0 0;
 }
 
 /* General input container styles */
@@ -541,18 +566,27 @@ textarea:focus::before {
 @media (max-width: 768px) {
     .page.visible {
         padding: 1rem;
-        gap: 0.5rem;
+        gap: 0;
+    }
+
+    .shared-content{
+      left:-120vw;
+      width:100%;
     }
 
     h1{
         font-size: 4rem;
+      }
+    h1 span{        
+        position:relative;
+        z-index:100;
     }
 
     h3, .focus-title input[type="text"]{
         font-size: 2rem;
-        padding:1rem 0;
+        padding: 0 0 .5rem 0;
         margin:0;
-    }
+    }    
 
     /* Remove instructions and menu*/
     .instruction-content, #menu-box {

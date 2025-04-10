@@ -24,22 +24,23 @@
     <script src="index.js"></script>
 </head>
 <body>
+  <div class="compass-bg"></div>
+
   <div class="page visible" id="page1" data-topic="overblik" data-title="Overblik">
     <div class="pageheaderTop">
       <h1><span class="blue">TRIN ET: </span> <span class="white">THE BIG PICTURE</span></h1>
       <div class="submenu-placeholder" id="submenu-page1"></div>
     </div>
     <div class="focus-items" id="focus-items"></div>
-    <button type="button" id="add-focus-btn">Tilføj målsætning </button>
-    <hr>
-    <div>
+    <div class="add-button-bottom">
+        <button type="button" id="add-focus-btn">Tilføj målsætning </button>
     </div>
   </div>
         
   <div class="page" id="page2" data-topic="projekter" data-title="Projekter">
     <div class="pageheaderTop">
       <h1><span class="blue">TRIN TO: </span> <span class="white">PROJEKTLISTEN</span></h1>
-      <div class="submenu-placeholder " id="submenu-page2"></div>
+      <div class="submenu-placeholder" id="submenu-page2"></div>
     </div>
     <div id="project-list"></div>
   </div>
@@ -47,7 +48,7 @@
   <div class="page" id="page3" data-topic="læring" data-title="Refleksion">  
     <div class="pageheaderTop">    
       <h1><span class="blue">TRIN TRE: </span> <span class="white">REFLEKSION</span></h1>
-      <div class="submenu-placeholder " id="submenu-page3"></div>
+      <div class="submenu-placeholder" id="submenu-page3"></div>
     </div>
     <div id="laering-container"></div>
   </div>
@@ -55,7 +56,7 @@
   <div class="page" id="page4" data-topic="forpligtelse" data-title="Kalender">
     <div class="pageheaderTop">
       <h1><span class="blue">TRIN FIRE: </span> <span class="white">FORPLIGT DIG</span></h1>
-      <div class="submenu-placeholder " id="submenu-page4"></div>
+      <div class="submenu-placeholder" id="submenu-page4"></div>
     </div>
     <div id="top-goals-container"></div>
     <div id="calendar-container"></div>      
@@ -64,7 +65,7 @@
   <div class="page" id="page5" data-topic="planlægning" data-title="Kig fremad">
     <div class="pageheaderTop">
       <h1><span class="blue">TRIN FEM: </span> <span class="white">PLANLÆG FORUD</span></h1>
-      <div class="submenu-placeholder " id="submenu-page5"></div>
+      <div class="submenu-placeholder" id="submenu-page5"></div>
     </div>
     <div id="plan-forud-container"></div>
   </div>
@@ -91,9 +92,6 @@
     
   <!-- Infoboksen placeres her, fx nederst i body -->
   <div id="info-box" class="info-box"></div>
-
-  <div class="compass-bg"></div>
-
   <div id="force-update-btn">Copy Week 13 to Week 14</div>
 </body>
   
