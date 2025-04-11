@@ -765,41 +765,47 @@ function addCalendarTask(container, task, dayIndex) {
 }
 
 function populateCalendarUI() {
-  let container = select("#calendar-container");
-  container.html("");
+    let container = select("#calendar-container");
+    container.html("");
 
-  // Ensure calendar data is initialized
-  if (!currentWeekData.calendar || !Array.isArray(currentWeekData.calendar)) {
-    currentWeekData.calendar = Array.from({ length: 7 }, () => ({ tasks: [] }));
-  }
+    // Ensure calendar data is initialized
+    if (!currentWeekData.calendar || !Array.isArray(currentWeekData.calendar)) {
+        currentWeekData.calendar = Array.from({ length: 7 }, () => ({ tasks: [] }));
+    }
 
-  for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-    let dayContainer = createDiv().addClass("day-container");
+    for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+        let dayContainer = createDiv().addClass("day-container");
 
-    let dateString = getDateFromWeekNumber(currentWeekNumber, dayIndex);
-    dayContainer.child(createElement("h3", dateString));
+        let dateString = getDateFromWeekNumber(currentWeekNumber, dayIndex);
+        dayContainer.child(createElement("h3", dateString));
 
-    // Create a container for tasks
-    const tasksContainer = createDiv().addClass('tasks-container');
-    const existingTasks = currentWeekData.calendar[dayIndex]?.tasks || [];
-    existingTasks.forEach(task => {
-      addCalendarTask(tasksContainer, task, dayIndex);
-    });
+        // Create a container for tasks
+        const tasksContainer = createDiv().addClass('tasks-container');
+        const existingTasks = currentWeekData.calendar[dayIndex]?.tasks || [];
+        existingTasks.forEach(task => {
+            addCalendarTask(tasksContainer, task, dayIndex);
+        });
 
-    // Add a button to create new tasks
-    const addTaskButton = createButton('Tilføj linje');
-    addTaskButton.addClass('add-task-button');
-    addTaskButton.mousePressed(() => {
-      const newTask = { title: '', completed: false };
-      currentWeekData.calendar[dayIndex].tasks.push(newTask);
-      addCalendarTask(tasksContainer, newTask, dayIndex);
-      hasChanged = true;
-    });
+        // Add a button to create new tasks
+        const addTaskButton = createButton('Tilføj linje');
+        addTaskButton.addClass('add-task-button');
+        addTaskButton.mousePressed(() => {
+            const newTask = { title: '', completed: false };
+            currentWeekData.calendar[dayIndex].tasks.push(newTask);
+            addCalendarTask(tasksContainer, newTask, dayIndex);
+            hasChanged = true;
+        });
 
-    dayContainer.child(tasksContainer);
-    dayContainer.child(addTaskButton);
-    container.child(dayContainer);
-  }
+        dayContainer.child(tasksContainer);
+        dayContainer.child(addTaskButton);
+        container.child(dayContainer);
+
+        // Shift focus to the current day (adjusting for Monday as the first day of the week)
+        const todayIndex = (new Date().getDay() + 6) % 7; // Convert Sunday (0) to 6, Monday (1) to 0, etc.
+        if (dayIndex === todayIndex) {
+            dayContainer.elt.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
 }
   
   function buildTaskList(tasks) {
