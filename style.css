@@ -26,7 +26,7 @@ body::-webkit-scrollbar {
   background-position: 100% 0; /* Position it similarly to .compass-bg */
   position: fixed;
   top: 0;
-  left: -100vw;
+  left: 100vw; /* Start from the right */
   width: 100vw;
   height: 90vh;
   display: grid;
@@ -36,6 +36,11 @@ body::-webkit-scrollbar {
   align-content: start;
   padding:3rem 3rem 0 3rem;
   z-index: 1; /* Ensure it is above .compass-bg */
+}
+
+.page.visible {
+    left: 0; /* Move to the center */
+    transition: 0.3s all ease-in-out; /* Smooth transition */
 }
 
 .page label{
@@ -86,25 +91,25 @@ button{
   color:white;
 }
 
+/* Adjust the shared-content for left-to-right animation */
 .shared-content {
-  box-sizing: border-box;
-  position: absolute;
-  top: 100%; /* Position below the buttons */
-  left: -50vw;
-  min-height:150px;
-  width: 40vw;
-  background-color: black; /* Semi-transparent black background */
-  color: whitesmoke;
-  padding: 1rem; /* Add padding when open */
-  z-index: 100; /* Ensure it appears on top */
-  overflow: hidden; /* Hide overflowing content */
-  border:1px solid whitesmoke;
-  border-radius: 0 1rem 1rem 1rem;
-  transition: all 0.5s ease-in-out; /* Smooth transition */
+    position: absolute;
+    top: 100%; /* Position below the buttons */
+    left: -150vw; /* Start from the left */
+    min-height: 150px;
+    width: 40vw;
+    background-color: black; /* Semi-transparent black background */
+    color: whitesmoke;
+    padding: 1rem; /* Add padding when open */
+    z-index: 100; /* Ensure it appears on top */
+    overflow: hidden; /* Hide overflowing content */
+    border: 1px solid whitesmoke;
+    border-radius: 1rem 0 1rem 1rem;
+    transition: all 0.5s ease-in-out; /* Smooth transition */
 }
 
 .shared-content.open {
-    left:0;
+    left: 0; /* Move to the center */
 }
 
 .page input[type="checkbox"] {
@@ -572,7 +577,7 @@ input:focus, textarea:focus {
     }
 
     .shared-content{
-      left:-120vw;
+      left:-200vw;
       width:100%;
     }
 
@@ -588,13 +593,22 @@ input:focus, textarea:focus {
         font-size: 2rem;
         padding: 0 0 .5rem 0;
         margin:0;
+        border-bottom: 1px solid lightgray;
     }    
+    .focus-title{
+        font-size: 2rem;
+        padding: 0 0 .5rem 0;
+        margin:0;
+        border:none;
+    }
 
     /* Remove instructions and menu*/
     .instruction-content, #menu-box {
         display: none;
     }
-
+    .calendar-modal{
+      margin-top:1rem;
+    }
     /* Make page header/title smaller */
     .page-header {
         font-size: 1.5rem;

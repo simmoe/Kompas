@@ -336,7 +336,6 @@ function updateWeekDisplay() {
     select("#current-week").html("Uge " + currentWeekNumber);
   }
   
-
   
   // Eksempel: Opret textarea til TRIN TRE - "Hvad er du stolt af?"
 function populateStolthedUI() {
@@ -737,6 +736,30 @@ function addCalendarTask(container, task, dayIndex) {
         task.title = titleInput.value();
         hasChanged = true;
     });
+
+    // Handle "Enter" key to create a new task below
+    titleInput.elt.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent default behavior of "Enter"
+            const newTask = { title: '', completed: false };
+            const currentIndex = currentWeekData.calendar[dayIndex].tasks.indexOf(task);
+            currentWeekData.calendar[dayIndex].tasks.splice(currentIndex + 1, 0, newTask);
+
+            // Clear and re-render only the relevant tasks-container
+            container.html('');
+            currentWeekData.calendar[dayIndex].tasks.forEach((task, index) => {
+                const newTaskElement = addCalendarTask(container, task, dayIndex);
+                if (index === currentIndex + 1) {
+                    // Focus on the newly created task
+                    newTaskElement.querySelector('.calendar-title').focus();
+                }
+            });
+
+            hasChanged = true;
+            triggerFirestoreUpdate();
+        }
+    });
+
     titleInput.elt.addEventListener('focusout', () => {
         triggerFirestoreUpdate();
     });
@@ -762,6 +785,8 @@ function addCalendarTask(container, task, dayIndex) {
 
     // Append the task container to the provided container
     container.child(taskDiv);
+
+    return taskDiv.elt; // Return the task element for focusing
 }
 
 function populateCalendarUI() {
@@ -1054,7 +1079,7 @@ function printCalendar() {
     calendar.render();
 
     // Show the modal
-    modal.style('display', 'block');
+    modal.addClass('display', 'block');
 }
 
 function printModalContent() {

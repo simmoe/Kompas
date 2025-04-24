@@ -4,6 +4,35 @@ let pages; // array med alle elementer med class = page
 let currentWeekNumber;
 let hasChanged = false; // Global flag der indikerer, at der er ændringer
 
+let touchStartX = 0;
+let touchEndX = 0;
+
+function handleTouchStart(event) {
+    touchStartX = event.changedTouches[0].screenX;
+}
+
+function handleTouchEnd(event) {
+    touchEndX = event.changedTouches[0].screenX;
+    handleSwipeGesture();
+}
+
+function handleSwipeGesture() {
+    const swipeThreshold = 50; // Minimum distance for a swipe to be recognized
+
+    if (touchEndX < touchStartX - swipeThreshold) {
+        // Swipe left
+        shiftPage("ArrowRight");
+    } else if (touchEndX > touchStartX + swipeThreshold) {
+        // Swipe right
+        shiftPage("ArrowLeft");
+    }
+}
+
+function setupSwipeListeners() {
+    const body = document.body;
+    body.addEventListener("touchstart", handleTouchStart, false);
+    body.addEventListener("touchend", handleTouchEnd, false);
+}
 
 function setup() {
   console.log('P5.js er loaded');
@@ -23,7 +52,8 @@ function setup() {
   initializeSubmenu()
   // evt. kald getWeek() for at hente data for ugen
   getWeek();
-  shiftPage(currentPage)
+  shiftPage(currentPage);
+  setupSwipeListeners();
 }
 
 let isChangingWeek = false; // Flag to indicate if a week change is in progress
@@ -109,36 +139,44 @@ async function setWeek() {
 }
 
 async function copyLastWeekData(newWeekNumber) {
-  const previousWeekNumber = newWeekNumber - 1;
-  console.log('Påbegynd kopiering af uge', previousWeekNumber);
-  try {
-    console.log(`Forsøger at hente data fra uge ${previousWeekNumber}`);
-    const docPath = `/kompas/user_1/weeks/week_${previousWeekNumber}`;
-    const docRef = firebase.firestore().doc(docPath);
-    const docSnap = await docRef.get();
+    const previousWeekNumber = newWeekNumber - 1;
+    console.log('Påbegynd kopiering af uge', previousWeekNumber);
+    try {
+        console.log(`Forsøger at hente data fra uge ${previousWeekNumber}`);
+        const docPath = `/kompas/user_1/weeks/week_${previousWeekNumber}`;
+        const docRef = firebase.firestore().doc(docPath);
+        const docSnap = await docRef.get();
 
-    if (docSnap.exists) {
-      const lastWeekData = docSnap.data();
-      currentWeekData = { ...lastWeekData, weekNumber: newWeekNumber };
+        if (docSnap.exists) {
+            const lastWeekData = docSnap.data();
+            currentWeekData = { ...lastWeekData, weekNumber: newWeekNumber };
 
-      // Initialize an empty calendar for the new week
-      currentWeekData.calendar = Array.from({ length: 7 }, () => ({ tasks: [] }));
+            // Set empty strings for specific fields
+            currentWeekData.inspiration = "";
+            currentWeekData.laeringOgTab = "";
+            currentWeekData.mennesker = "";
+            currentWeekData.stolthed = "";
+            currentWeekData.taknemmelighed = "";
 
-      // Filter uncompleted tasks from last week and add them to the first day
-      currentWeekData.calendar[0].tasks = lastWeekData.calendar
-        ?.flatMap(day => day.tasks.filter(task => !task.completed)) || [];
+            // Initialize an empty calendar for the new week
+            currentWeekData.calendar = Array.from({ length: 7 }, () => ({ tasks: [] }));
 
-      console.log("Uncompleted tasks added to the first day of the new week:", currentWeekData.calendar[0].tasks);
-      populateAllUI();
-      showInfo("Data kopieret fra sidste uge.");
-    } else {
-      console.log(`Ingen data fundet for uge ${previousWeekNumber}. Initialiserer ny uge.`);
-      currentWeekData = { weekNumber: newWeekNumber, projects: [], calendar: [], stolthed: "", laeringOgTab: "", inspiration: "", mennesker: "", forbered: "", planForud: "" };
-      showInfo("Ingen tidligere data fundet. Ny uge oprettet.");
+            // Filter uncompleted tasks from last week and add them to the first day
+            currentWeekData.calendar[0].tasks = lastWeekData.calendar
+                ?.flatMap(day => day.tasks.filter(task => !task.completed)) || [];
+
+
+            console.log("Uncompleted tasks added to the first day of the new week:", currentWeekData.calendar[0].tasks);
+            populateAllUI();
+            showInfo("Data kopieret fra sidste uge.");
+        } else {
+            console.log(`Ingen data fundet for uge ${previousWeekNumber}. Initialiserer ny uge.`);
+            currentWeekData = { weekNumber: newWeekNumber, projects: [], calendar: [], stolthed: "", laeringOgTab: "", inspiration: "", mennesker: "", forbered: "", planForud: "" };
+            showInfo("Ingen tidligere data fundet. Ny uge oprettet.");
+        }
+    } catch (error) {
+        console.error("Fejl ved kopiering af ugedata:", error);
     }
-  } catch (error) {
-    console.error("Fejl ved kopiering af ugedata:", error);
-  }
 }
 
 function populateAllUI() {
@@ -152,6 +190,7 @@ function populateAllUI() {
 }
 
 function shiftPage(input) {
+  console.log(input, 'trying to shift page');
   if (input === "ArrowLeft") {
     input = currentPage - 1;
   }
