@@ -36,6 +36,7 @@ function setupSwipeListeners() {
 
 function setup() {
   console.log('P5.js er loaded');
+
   pages = selectAll('.page');
   // Registrer klik på footer-pile
   select('#prev-page').mousePressed(() => shiftPage("ArrowLeft"));
@@ -106,17 +107,21 @@ async function getWeek() {
   const docPath = `/kompas/user_1/weeks/week_${currentWeekNumber}`;
   try {
     const docRef = firebase.firestore().doc(docPath);
-    const docSnap = await docRef.get();
-    if (docSnap.exists) {
-      currentWeekData = docSnap.data();
-      console.log(`Ugedata for uge ${currentWeekNumber} hentet:`, currentWeekData);
-      // Log the full currentWeekData object as a backup
-      //console.log('Backup of currentWeekData:', JSON.stringify(currentWeekData));
-      populateAllUI();
-    } else {
-      console.log(`Ingen data for uge ${currentWeekNumber} findes. Initialiserer et tomt objekt.`);
-      copyLastWeekData(currentWeekNumber);
-    }
+
+    // Set up a real-time listener for the document
+    docRef.onSnapshot((docSnap) => {
+      if (docSnap.exists) {
+        const newData = docSnap.data();
+        if (JSON.stringify(newData) !== JSON.stringify(currentWeekData)) {
+          currentWeekData = newData; // Update local data
+          populateAllUI(); // Refresh the UI with the new data
+          console.log(`Real-time update for week ${currentWeekNumber}:`, newData);
+        }
+      } else {
+        console.log(`Ingen data for uge ${currentWeekNumber} findes. Initialiserer et tomt objekt.`);
+        copyLastWeekData(currentWeekNumber);
+      }
+    });
   } catch (error) {
     console.error("Fejl ved hentning af ugedata:", error);
   }

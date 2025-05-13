@@ -1140,4 +1140,3 @@ function printModalContent() {
     printDocument.appendChild(html);
     printDocument.close();
 }
-
