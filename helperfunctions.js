@@ -1,3 +1,6 @@
+// Add a global variable to track the currently active day index
+let activeCalendarDayIndex = null;
+
 function showInfo(message) {
     // Forsøg at finde en eksisterende infoboks
     let infoBox = select('#info-box');
@@ -808,7 +811,16 @@ function populateCalendarUI() {
         const tasksContainer = createDiv().addClass('tasks-container');
         const existingTasks = currentWeekData.calendar[dayIndex]?.tasks || [];
         existingTasks.forEach(task => {
-            addCalendarTask(tasksContainer, task, dayIndex);
+            // Wrap addCalendarTask to add focus event for tracking active day
+            const taskDiv = addCalendarTask(tasksContainer, task, dayIndex);
+            // Add focus event to the input to track active day
+            const input = taskDiv.querySelector('.calendar-title');
+            if (input) {
+                input.addEventListener('focus', () => {
+                    activeCalendarDayIndex = dayIndex;
+                    console.log('Active calendar day set to:', dayIndex);
+                });
+            }
         });
 
         // Add a button to create new tasks
@@ -832,13 +844,41 @@ function populateCalendarUI() {
         }
     }
 }
-  
-  function buildTaskList(tasks) {
+
+function buildTaskList(tasks) {
     let ul = createElement("ul");
     tasks.forEach(task => {
-        let li = createElement("li", task.title); // Brug 'title' i stedet for 'description'
+        let li = createElement("li", task.title);
+        // Add click handler to insert this task into the active day
+        li.mousePressed((e) => {
+            e.stopPropagation();
+            // If no day is selected, use today's index (Monday=0, Sunday=6)
+            let targetDayIndex = activeCalendarDayIndex;
+            if (targetDayIndex === null) {
+                targetDayIndex = (new Date().getDay() + 6) % 7;
+                console.log('No active day selected, using today:', targetDayIndex);
+            }
+            console.log('Clicked top goal task:', task.title, 'Active day:', targetDayIndex);
+            if (targetDayIndex !== null && currentWeekData.calendar[targetDayIndex]) {
+                currentWeekData.calendar[targetDayIndex].tasks.push({
+                    title: task.title,
+                    completed: false,
+                    subtasks: task.subtasks ? JSON.parse(JSON.stringify(task.subtasks)) : []
+                });
+                populateCalendarUI();
+                hasChanged = true;
+                triggerFirestoreUpdate();
+                showInfo("Opgave tilføjet til dagen");
+                // Hide the top goals details container after click
+                const detailsContainer = select("#top-goals-details");
+                if (detailsContainer) {
+                    detailsContainer.html("");
+                    detailsContainer.removeClass("open");
+                    detailsContainer.elt.removeAttribute("data-goal-index");
+                }
+            }
+        });
         if (task.subtasks && task.subtasks.length > 0) {
-            // Hvis der findes underopgaver, bygges en nestet liste
             let nestedUl = buildTaskList(task.subtasks);
             li.child(nestedUl);
         }
@@ -964,9 +1004,6 @@ function initializeSubmenu() {
 
         // Iterate over each submenu item for the page
         Object.keys(pageData).forEach(menuTitle => {
-            const menuItem = pageData[menuTitle];
-
-            // Create the button for the submenu item
             const button = createButton(menuTitle);
             button.addClass("submenu-button");
             placeholder.child(button);
@@ -982,8 +1019,7 @@ function initializeSubmenu() {
                 } else {
                     // Populate the shared content div with the submenu content
                     sharedContentDiv.html(""); // Clear previous content
-                    if(!menuItem.content) return;
-                    menuItem.content.forEach(paragraph => {
+                    pageData[menuTitle].content.forEach(paragraph => {
                         const p = createP(paragraph);
                         sharedContentDiv.child(p);
                     });
@@ -1140,3 +1176,4 @@ function printModalContent() {
     printDocument.appendChild(html);
     printDocument.close();
 }
+
