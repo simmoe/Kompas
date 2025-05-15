@@ -54,13 +54,20 @@ function showInfo(message) {
     }
   }
 
-  function triggerFirestoreUpdate() {
+  // Update triggerFirestoreUpdate to accept a silent flag and pass it to setWeek
+function triggerFirestoreUpdate(silent = false) {
     if (!isChangingWeek && hasChanged) {
-        setWeek();
+        setWeek(silent);
         hasChanged = false; // Reset the flag after the update
         console.log("Firestore updated successfully.");
     }
 }
+
+// Example usage in event handlers (for silent update):
+// triggerFirestoreUpdate(true); // Silent update, no UI refresh/scroll
+
+// Example usage in event handlers (for normal update):
+// triggerFirestoreUpdate(); // Normal update, triggers UI refresh
 
   function addFocusItem(focusDiv = false) {
     let container = select('#focus-items');
@@ -99,7 +106,7 @@ function showInfo(message) {
         if (!isChangingWeek && hasChanged) {
             updateFocusItemModel(newFocusDiv);
             initializeProjects();
-            triggerFirestoreUpdate();
+            triggerFirestoreUpdate(true);
             showInfo("Fokusområdet er gemt");
         }
     });
@@ -126,7 +133,7 @@ function showInfo(message) {
             populateProjectsUI();
         }
         hasChanged = true;
-        triggerFirestoreUpdate();
+        triggerFirestoreUpdate(true); // Silent update
         showInfo("Fokusområdet er gemt");
     });
     
@@ -145,7 +152,7 @@ function showInfo(message) {
             item.elt.setAttribute('data-index', i);
         });
         hasChanged = true;
-        triggerFirestoreUpdate();
+        triggerFirestoreUpdate(true);
     });
     newFocusDiv.child(deleteSpan);
     
@@ -159,7 +166,7 @@ function showInfo(message) {
             if (!isChangingWeek && hasChanged) {
                 updateFocusItemModel(newFocusDiv);
                 initializeProjects();
-                triggerFirestoreUpdate();
+                triggerFirestoreUpdate(true);
                 showInfo("Fokusområdet er gemt");
             }
         });
@@ -250,7 +257,7 @@ function showInfo(message) {
     taskTitleInput.elt.addEventListener('focusout', function() {
         if (taskTitleInput.value().trim() !== '') {
             console.log('Calling triggerFirestoreUpdate from focusout event in createTaskElement');
-            triggerFirestoreUpdate(); // Replaces setWeek()
+            triggerFirestoreUpdate(true); // Replaces setWeek()
             showInfo("Opgavelisten er gemt");
             console.log("Current task data:", task);
         }
@@ -277,7 +284,7 @@ function showInfo(message) {
         currentWeekData.projects[projectIndex].tasks = currentWeekData.projects[projectIndex].tasks.filter(t => t !== task);
         hasChanged = true;
         console.log('Calling triggerFirestoreUpdate from delete event in createTaskElement');
-        triggerFirestoreUpdate(); // Replaces setWeek()
+        triggerFirestoreUpdate(true); // Replaces setWeek()
         showInfo("Opgavelisten er gemt");
     });
 
@@ -716,7 +723,7 @@ function addCalendarTask(container, task, dayIndex) {
         container.elt.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
         hasChanged = true;
-        triggerFirestoreUpdate();
+        triggerFirestoreUpdate(true);
     });
 
     // Create the checkbox
@@ -727,7 +734,7 @@ function addCalendarTask(container, task, dayIndex) {
     checkbox.changed(() => {
         task.completed = checkbox.elt.checked; // Update the task's completed state
         hasChanged = true;
-        triggerFirestoreUpdate(); // Save the updated state to Firestore
+        triggerFirestoreUpdate(true); // Save the updated state to Firestore
         showInfo(checkbox.elt.checked ? "Opgave løst" : "Opgave på to-do listen");
     });
 
@@ -759,12 +766,12 @@ function addCalendarTask(container, task, dayIndex) {
             });
 
             hasChanged = true;
-            triggerFirestoreUpdate();
+            triggerFirestoreUpdate(true);
         }
     });
 
     titleInput.elt.addEventListener('focusout', () => {
-        triggerFirestoreUpdate();
+        triggerFirestoreUpdate(true); // Save the updated state to Firestore
     });
 
     // Create the delete icon
@@ -776,7 +783,7 @@ function addCalendarTask(container, task, dayIndex) {
             currentWeekData.calendar[dayIndex].tasks.splice(taskIndex, 1);
             taskDiv.remove();
             hasChanged = true;
-            triggerFirestoreUpdate();
+            triggerFirestoreUpdate(true);
             showInfo("Opgave slettet");
         }
     });
@@ -867,7 +874,7 @@ function buildTaskList(tasks) {
                 });
                 populateCalendarUI();
                 hasChanged = true;
-                triggerFirestoreUpdate();
+                triggerFirestoreUpdate(true);
                 showInfo("Opgave tilføjet til dagen");
                 // Hide the top goals details container after click
                 const detailsContainer = select("#top-goals-details");
@@ -915,7 +922,7 @@ function buildTaskList(tasks) {
     planTextArea.elt.addEventListener("focusout", function() {
       currentWeekData.planForud = planTextArea.value();
       console.log('Calling triggerFirestoreUpdate from focusout event in populatePlanForudUI');
-      triggerFirestoreUpdate(); // Replaces setWeek()
+      triggerFirestoreUpdate(true); // Replaces setWeek()
       showInfo("Ændringer gemt");
     });
   }

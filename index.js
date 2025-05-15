@@ -113,6 +113,7 @@ async function getWeek() {
       if (docSnap.exists) {
         const newData = docSnap.data();
         if (JSON.stringify(newData) !== JSON.stringify(currentWeekData)) {
+          console.log('Data has changed, updating local data');           
           currentWeekData = newData; // Update local data
           populateAllUI(); // Refresh the UI with the new data
           console.log(`Real-time update for week ${currentWeekNumber}:`, newData);
@@ -127,7 +128,8 @@ async function getWeek() {
   }
 }
 
-async function setWeek() {
+// Add a silent flag to setWeek
+async function setWeek(silent = false) {
   if (!hasChanged || isChangingWeek) {
     console.log('No changes detected or week change in progress, skipping setWeek');
     return;
@@ -138,6 +140,10 @@ async function setWeek() {
     await docRef.set(currentWeekData, { merge: true });
     console.log(`SetWeek: Ugedata for uge ${currentWeekNumber} opdateret:`, currentWeekData);
     hasChanged = false; // Reset the flag after saving
+    // Only call populateAllUI if not silent
+    if (!silent) {
+      populateAllUI();
+    }
   } catch (error) {
     console.error("Fejl ved opdatering af ugedata:", error);
   }
