@@ -57,6 +57,7 @@ function showInfo(message) {
   // Update triggerFirestoreUpdate to accept a silent flag and pass it to setWeek
 function triggerFirestoreUpdate(silent = false) {
     if (!isChangingWeek && hasChanged) {
+        isSilentUpdate = silent; // Set the silent flag
         setWeek(silent);
         hasChanged = false; // Reset the flag after the update
         console.log("Firestore updated successfully.");
@@ -751,6 +752,8 @@ function addCalendarTask(container, task, dayIndex) {
     titleInput.elt.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault(); // Prevent default behavior of "Enter"
+            e.stopPropagation(); // Prevent the event from bubbling up and triggering scroll
+
             const newTask = { title: '', completed: false };
             const currentIndex = currentWeekData.calendar[dayIndex].tasks.indexOf(task);
             currentWeekData.calendar[dayIndex].tasks.splice(currentIndex + 1, 0, newTask);
@@ -760,13 +763,15 @@ function addCalendarTask(container, task, dayIndex) {
             currentWeekData.calendar[dayIndex].tasks.forEach((task, index) => {
                 const newTaskElement = addCalendarTask(container, task, dayIndex);
                 if (index === currentIndex + 1) {
-                    // Focus on the newly created task
-                    newTaskElement.querySelector('.calendar-title').focus();
+                    // Use setTimeout to ensure the DOM is fully updated before focusing
+                    setTimeout(() => {
+                        newTaskElement.querySelector('.calendar-title').focus();
+                    }, 0);
                 }
             });
 
             hasChanged = true;
-            triggerFirestoreUpdate(true);
+            triggerFirestoreUpdate(true); // Update Firestore silently
         }
     });
 

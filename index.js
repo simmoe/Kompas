@@ -3,6 +3,7 @@ let pages; // array med alle elementer med class = page
 // Global variabel til ugenummeret
 let currentWeekNumber;
 let hasChanged = false; // Global flag der indikerer, at der er ændringer
+let isSilentUpdate = false; // Global flag to suppress redundant UI updates
 
 let touchStartX = 0;
 let touchEndX = 0;
@@ -103,29 +104,35 @@ function updateWeekDisplay() {
 }
 
 async function getWeek() {
-  console.log('Trying to fetch week data for week', currentWeekNumber);
-  const docPath = `/kompas/user_1/weeks/week_${currentWeekNumber}`;
-  try {
-    const docRef = firebase.firestore().doc(docPath);
+    console.log('Trying to fetch week data for week', currentWeekNumber);
+    const docPath = `/kompas/user_1/weeks/week_${currentWeekNumber}`;
+    try {
+        const docRef = firebase.firestore().doc(docPath);
 
-    // Set up a real-time listener for the document
-    docRef.onSnapshot((docSnap) => {
-      if (docSnap.exists) {
-        const newData = docSnap.data();
-        if (JSON.stringify(newData) !== JSON.stringify(currentWeekData)) {
-          console.log('Data has changed, updating local data');           
-          currentWeekData = newData; // Update local data
-          populateAllUI(); // Refresh the UI with the new data
-          console.log(`Real-time update for week ${currentWeekNumber}:`, newData);
-        }
-      } else {
-        console.log(`Ingen data for uge ${currentWeekNumber} findes. Initialiserer et tomt objekt.`);
-        copyLastWeekData(currentWeekNumber);
-      }
-    });
-  } catch (error) {
-    console.error("Fejl ved hentning af ugedata:", error);
-  }
+        // Set up a real-time listener for the document
+        docRef.onSnapshot((docSnap) => {
+            if (docSnap.exists) {
+                const newData = docSnap.data();
+
+                // Skip UI updates if this is a silent update
+                if (isSilentUpdate) {
+                    console.log('Silent update detected, skipping UI update');
+                    isSilentUpdate = false; // Reset the flag
+                    return;
+                }
+
+                console.log('Data has changed, updating local data');
+                currentWeekData = newData; // Update local data
+                populateAllUI(); // Refresh the UI with the new data
+                console.log(`Real-time update for week ${currentWeekNumber}:`, newData);
+            } else {
+                console.log(`No data found for week ${currentWeekNumber}. Initializing a new week.`);
+                copyLastWeekData(currentWeekNumber);
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching week data:", error);
+    }
 }
 
 // Add a silent flag to setWeek

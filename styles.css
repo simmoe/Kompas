@@ -1,0 +1,20 @@
+/* Adjust the shared-content for left-to-right animation */
+.shared-content {
+    position: absolute;
+    top: 100%; /* Position below the buttons */
+    left: -120vw; /* Start from the left */
+    min-height: 150px;
+    width: 40vw;
+    background-color: black; /* Semi-transparent black background */
+    color: whitesmoke;
+    padding: 1rem; /* Add padding when open */
+    z-index: 100; /* Ensure it appears on top */
+    overflow: hidden; /* Hide overflowing content */
+    border: 1px solid whitesmoke;
+    border-radius: 1rem 0 1rem 1rem;
+    transition: all 0.5s ease-in-out; /* Smooth transition */
+}
+
+.shared-content.open {
+    left: 0; /* Move to the center */
+}
